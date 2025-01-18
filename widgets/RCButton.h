@@ -67,12 +67,17 @@ RCButton::RCButton(const IRECT& bounds, int paramIdx, const char* label, const R
 void RCButton::OnInit() { RCButtonControlBase::OnInit(); }
 void RCButton::Draw(IGraphics& g) { DrawWidget(g); }
 
+
 void RCButton::DrawWidget(IGraphics& g)
 {
-  auto pParam = GetParam();
-  double value = pParam->Value();
-  double step = pParam->GetStep();
-  int valueIdx = static_cast<int>(value / step);
+  int valueIdx = 0;
+  if (mLabel == nullptr || strcmp(mLabel, "") == 0)
+  {
+    auto pParam = GetParam();
+    double value = pParam->Value();
+    double step = pParam->GetStep();
+    valueIdx = static_cast<int>(value / step);
+  }
 
   const WidgetColorSet colorset = mStyle.GetColors(mMouseControl.IsHovering(), mMouseControl.IsLDown(), IsDisabled(), valueIdx);
   DrawBG(g, colorset, mRECT);
