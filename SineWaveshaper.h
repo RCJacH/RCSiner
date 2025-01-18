@@ -13,31 +13,17 @@ class SineWaveshaper
 public:
   enum EAlgorithms
   {
-    kBendBeforeSin = 0,
-    kBendAfterSin,
-    kSinXPlusBendBeforeSin,
-    kSinXPlusBendAfterSin,
-    kSinXPlusXBendBeforeSin,
-    kSinXPlusXBendAfterSin,
-    kSinXPIPlusBendBeforeSin,
-    kSinXPIPlusBendAfterSin,
-    kSinXPlusXBoundBendBeforeSin,
-    kSinXPlusXBoundBendAfterSin,
-    kSinXPowEBendBeforeSin,
-    kSinXPowEBendAfterSin
+    kSinXPlusX = 0,
+    kSinXPlusSinX,
+    kSinXPlusSinXPI,
+    kSinXPlusXBound,
+    kSinXPowEuler
   };
 
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
-  void SetPull(double pull)
-  {
-    mPull = pull;
-    mPullMultiplier = std::exp(std::log(.5) + pull * (std::log(16.) - std::log(.5)));
-  }
-  void SetBend(double bend)
-  {
-    mBend = bend;
-    mBendMultiplier = std::exp(std::log(.25) + bend * (std::log(4) - std::log(.25)));
-  }
+  void SetPull(double pull) { mPull = std::exp(std::log(.5) + pull * (std::log(16.) - std::log(.5))); }
+  void SetSqueeze(double squeeze) { mSqueeze = std::exp(std::log(.25) + squeeze * (std::log(4) - std::log(.25))); }
+  void SetCurve(double curve) { mCurve = std::exp(std::log(.25) + curve * (std::log(4) - std::log(.25))); }
   void SetClip(int clipflag)
   {
     mPreClip = clipflag & 1;
@@ -51,41 +37,20 @@ public:
       uInput = std::min(uInput, 1.);
     switch (mAlgorithm)
     {
-    case kBendBeforeSin:
-      uInput = BendBeforeSin(uInput);
+    case kSinXPlusX:
+      uInput = SinXPlusX(uInput);
       break;
-    case kBendAfterSin:
-      uInput = BendAfterSin(uInput);
+    case kSinXPlusSinX:
+      uInput = SinXPlusSinX(uInput);
       break;
-    case kSinXPlusBendBeforeSin:
-      uInput = SinXPlusBendBeforeSin(uInput);
+    case kSinXPlusSinXPI:
+      uInput = SinXPlusSinXPI(uInput);
       break;
-    case kSinXPlusBendAfterSin:
-      uInput = SinXPlusBendAfterSin(uInput);
+    case kSinXPlusXBound:
+      uInput = SinXPlusXBound(uInput);
       break;
-    case kSinXPlusXBendBeforeSin:
-      uInput = SinXPlusXBendBeforeSin(uInput);
-      break;
-    case kSinXPlusXBendAfterSin:
-      uInput = SinXPlusXBendAfterSin(uInput);
-      break;
-    case kSinXPIPlusBendBeforeSin:
-      uInput = SinXPIPlusBendBeforeSin(uInput);
-      break;
-    case kSinXPIPlusBendAfterSin:
-      uInput = SinXPIPlusBendAfterSin(uInput);
-      break;
-    case kSinXPlusXBoundBendBeforeSin:
-      uInput = SinXPlusXBoundBendBeforeSin(uInput);
-      break;
-    case kSinXPlusXBoundBendAfterSin:
-      uInput = SinXPlusXBoundBendAfterSin(uInput);
-      break;
-    case kSinXPowEBendBeforeSin:
-      uInput = SinXPowEBendBeforeSin(uInput);
-      break;
-    case kSinXPowEBendAfterSin:
-      uInput = SinXPowEBendAfterSin(uInput);
+    case kSinXPowEuler:
+      uInput = SinXPowEuler(uInput);
       break;
     }
     if (mPostClip)
@@ -97,35 +62,28 @@ private:
   std::function<iplug::sample> mAlgorithmCallable;
   EAlgorithms mAlgorithm;
   double mPull;
-  double mPullMultiplier;
-  double mBend;
-  double mBendMultiplier;
+  double mSqueeze;
+  double mCurve;
   bool mPreClip;
   bool mPostClip;
 
 private:
-  iplug::sample BendBeforeSin(iplug::sample x) { return std::sin(mPullMultiplier * std::pow(x, mBendMultiplier) * iplug::PI); }
-  iplug::sample BendAfterSin(iplug::sample x)
+  iplug::sample SinX(iplug::sample x)
   {
-    const auto s = std::sin(mPullMultiplier * x * iplug::PI);
+    const auto s = std::sin(mPull * std::pow(x, mSqueeze) * iplug::PI);
     if (!s)
       return s;
-    return sign(s) * std::pow(std::abs(s), mBendMultiplier);
+    return sign(s) * std::pow(std::abs(s), mCurve);
   }
-  iplug::sample SinXPlusBendBeforeSin(iplug::sample x) { return .5 * (std::sin(x) - BendBeforeSin(x)); }
-  iplug::sample SinXPlusBendAfterSin(iplug::sample x) { return .5 * (std::sin(x) - BendAfterSin(x)); }
-  iplug::sample SinXPlusXBendBeforeSin(iplug::sample x) { return .5 * (x - BendBeforeSin(x)); }
-  iplug::sample SinXPlusXBendAfterSin(iplug::sample x) { return .5 * (x - BendAfterSin(x)); }
-  iplug::sample SinXPIPlusBendBeforeSin(iplug::sample x) { return .5 * (std::sin(x * iplug::PI) - BendBeforeSin(x)); }
-  iplug::sample SinXPIPlusBendAfterSin(iplug::sample x) { return .5 * (std::sin(x * iplug::PI) - BendAfterSin(x)); }
-  iplug::sample SinXPlusXBoundBendBeforeSin(iplug::sample x) { return (1. - x) * BendBeforeSin(x) + x; }
-  iplug::sample SinXPlusXBoundBendAfterSin(iplug::sample x) { return (1. - x) * BendAfterSin(x) + x; }
-  iplug::sample SinXPowEBendBeforeSin(iplug::sample x) { return std::sin(mPullMultiplier * std::pow(std::pow(x, mBendMultiplier), e) * iplug::PI); }
-  iplug::sample SinXPowEBendAfterSin(iplug::sample x)
+  iplug::sample SinXPlusX(iplug::sample x) { return .5 * (x - SinX(x)); }
+  iplug::sample SinXPlusSinX(iplug::sample x) { return .5 * (std::sin(x) - SinX(x)); }
+  iplug::sample SinXPlusSinXPI(iplug::sample x) { return .5 * (std::sin(x * iplug::PI) - SinX(x)); }
+  iplug::sample SinXPlusXBound(iplug::sample x) { return (1. - x) * SinX(x) + x; }
+  iplug::sample SinXPowEuler(iplug::sample x)
   {
-    const auto s = std::sin(mPullMultiplier * std::pow(x * iplug::PI, e));
+    const auto s = std::sin(mPull * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
     if (!s)
       return s;
-    return sign(s) * std::pow(std::abs(s), mBendMultiplier);
+    return sign(s) * std::pow(std::abs(s), mCurve);
   }
 };
