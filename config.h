@@ -24,8 +24,8 @@
 #define PLUG_DOES_MPE 0
 #define PLUG_DOES_STATE_CHUNKS 0
 #define PLUG_HAS_UI 1
-#define PLUG_WIDTH 600
-#define PLUG_HEIGHT 600
+#define PLUG_WIDTH 420
+#define PLUG_HEIGHT 580
 #define PLUG_FPS 60
 #define PLUG_SHARED_RESOURCES 0
 #define PLUG_HOST_RESIZE 0
@@ -48,7 +48,7 @@
 #define CLAP_MANUAL_URL "https://iplug2.github.io/manuals/example_manual.pdf"
 #define CLAP_SUPPORT_URL "https://github.com/iPlug2/iPlug2/wiki"
 #define CLAP_DESCRIPTION "A simple audio effect for modifying gain"
-#define CLAP_FEATURES "audio-effect"//, "utility"
+#define CLAP_FEATURES "audio-effect" //, "utility"
 
 #define APP_NUM_CHANNELS 2
 #define APP_N_VECTOR_WAIT 0
