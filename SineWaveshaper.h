@@ -59,7 +59,6 @@ public:
   };
 
 private:
-  std::function<iplug::sample> mAlgorithmCallable;
   EAlgorithms mAlgorithm;
   double mPull;
   double mSqueeze;
