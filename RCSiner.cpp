@@ -11,6 +11,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kCurve)->InitDouble("Curve", .5, 0., 1., .001);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 24., .1, "dB");
+  GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_WIDTH, PLUG_HEIGHT)); };
@@ -34,14 +35,17 @@ RCSiner::RCSiner(const InstanceInfo& info)
 #if IPLUG_DSP
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
-  const double gain = GetParam(kOutputGain)->Value() / 100.;
+  const double wetAmp = GetParam(kWetness)->Value() * .01;
+  const double dryAmp = 1. - wetAmp;
+  const double inGain = GetParam(kInputGain)->Value() * .01;
+  const double outGain = GetParam(kOutputGain)->Value() * .01;
   const int nChans = NOutChansConnected();
 
   for (int s = 0; s < nFrames; s++)
   {
     for (int c = 0; c < nChans; c++)
     {
-      outputs[c][s] = inputs[c][s] * gain;
+      outputs[c][s] = inputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(inputs[c][s] * inGain) * outGain * wetAmp;
     }
   }
 }
