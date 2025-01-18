@@ -8,7 +8,9 @@ enum EParams
 {
   kAlgorithm = 0,
   kPull,
-  kBend,
+  kSqueeze,
+  kCurve,
+  kClipFlag,
   kInputGain,
   kOutputGain,
   kNumParams
