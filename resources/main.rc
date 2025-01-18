@@ -151,6 +151,7 @@ BEGIN
     "#include ""..\\config.h""\r\n"
     "FIRASANS_REGULAR_FN TTF FIRASANS_REGULAR_FN\r\n"
     "FIRASANS_SEMIBOLD_FN TTF FIRASANS_SEMIBOLD_FN\r\n"
+    "PNGTITLE_2X_FN PNG PNGTITLE_2X_FN\r\n"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -232,6 +233,7 @@ END
 #include "..\config.h"
 FIRASANS_REGULAR_FN TTF FIRASANS_REGULAR_FN
 FIRASANS_SEMIBOLD_FN TTF FIRASANS_SEMIBOLD_FN
+PNGTITLE_2X_FN PNG PNGTITLE_2X_FN
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

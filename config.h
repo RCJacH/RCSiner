@@ -58,3 +58,5 @@
 
 #define FIRASANS_REGULAR_FN "FiraSans-Regular-Mini.ttf"
 #define FIRASANS_SEMIBOLD_FN "FiraSans-SemiBold-Mini.ttf"
+#define PNGTITLE_FN "title.png"
+#define PNGTITLE_2X_FN "title@2x.png"
