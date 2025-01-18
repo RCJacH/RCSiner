@@ -7,7 +7,7 @@ const int kNumPresets = 1;
 enum EParams
 {
   kAlgorithm = 0,
-  kSync,
+  kPull,
   kBend,
   kInputGain,
   kOutputGain,
