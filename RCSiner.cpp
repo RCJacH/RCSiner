@@ -1,6 +1,12 @@
 #include "RCSiner.h"
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
+#include "widgets/Color.h"
+#include "widgets/RCButton.h"
+#include "widgets/RCLabel.h"
+#include "widgets/RCPanel.h"
+#include "widgets/RCSlider.h"
+#include "widgets/RCStyle.h"
 
 RCSiner::RCSiner(const InstanceInfo& info)
   : iplug::Plugin(info, MakeConfig(kNumParams, kNumPresets))
@@ -19,15 +25,19 @@ RCSiner::RCSiner(const InstanceInfo& info)
   mLayoutFunc = [&](IGraphics* pGraphics) {
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->AttachPanelBackground(COLOR_GRAY);
-    pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
+    pGraphics->LoadFont("FiraSans-Regular", FIRASANS_REGULAR_FN);
+    pGraphics->LoadFont("FiraSans-SemiBold", FIRASANS_SEMIBOLD_FN);
+
+    // COLORS
+    const Color::HSLA colorMain = Color::HSLA(209, .32f, .30f);
+
     const IRECT b = pGraphics->GetBounds();
-    pGraphics->AttachControl(new ITextControl(b.GetMidVPadded(50), "Hello iPlug 2!", IText(50)));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 0, 2, 3), kAlgorithm));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 1, 2, 3), kPull));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 2, 2, 3), kSqueeze));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 0, 2, 3), kCurve));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 1, 2, 3), kInputGain));
-    pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 2, 2, 3), kOutputGain));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 0, 2, 3), kAlgorithm));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 1, 2, 3), kPull));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(0, 2, 2, 3), kSqueeze));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 0, 2, 3), kCurve));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 1, 2, 3), kInputGain));
+    // pGraphics->AttachControl(new IVKnobControl(b.GetFromTop(200).GetGridCell(1, 2, 2, 3), kOutputGain));
   };
 #endif
 }

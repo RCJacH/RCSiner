@@ -149,7 +149,8 @@ END
 3 TEXTINCLUDE
 BEGIN
     "#include ""..\\config.h""\r\n"
-    "ROBOTO_FN TTF ROBOTO_FN\0"
+    "FIRASANS_REGULAR_FN TTF FIRASANS_REGULAR_FN\r\n"
+    "FIRASANS_SEMIBOLD_FN TTF FIRASANS_SEMIBOLD_FN\r\n"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -229,7 +230,8 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "..\config.h"
-ROBOTO_FN TTF ROBOTO_FN
+FIRASANS_REGULAR_FN TTF FIRASANS_REGULAR_FN
+FIRASANS_SEMIBOLD_FN TTF FIRASANS_SEMIBOLD_FN
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
