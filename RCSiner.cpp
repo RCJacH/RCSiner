@@ -35,12 +35,11 @@ RCSiner::RCSiner(const InstanceInfo& info)
     // COLORS
     const Color::HSLA colorMain = Color::HSLA(4, .36f, .28f);
     const Color::HSLA colorPluginBG = colorMain.Scaled(0.f, -.5f, -.05f);
-    const Color::HSLA colorWaveform = colorMain.Scaled(0.f, -.8f, .8f);
+    const Color::HSLA colorWaveform = colorMain.Scaled(0.f, -.5f, .8f);
     const Color::HSLA colorWaveformSectionBG = colorMain.Scaled(0.f, -.4f, -.55f);
     const Color::HSLA colorWaveformSectionBorder = colorMain.Scaled(0.f, -.75f, .5f);
-    const Color::HSLA colorWaeformBG = colorMain.Scaled(0.f, -.8f, .8f);
     const Color::HSLA colorDryWet = colorMain.Scaled(0.f, .2f, .2f);
-    const Color::HSLA colorInput = colorMain.Adjusted(180).Scaled(0.f, -.9f, .7f);
+    const Color::HSLA colorInput = colorMain.Adjusted(180).Scaled(0.f, -.95f, .7f);
     const Color::HSLA colorOutput = colorMain.Scaled(0.f, .3f, .6f);
     const Color::HSLA colorSelector = colorMain.Scaled(0.f, -.5f, .6f);
     const Color::HSLA colorControls = colorMain.Scaled(0.f, 0.f, .05f);

@@ -101,7 +101,7 @@ public:
         g.PathLineTo(xPos, yPos);
       xPos += 1.f;
     }
-    g.PathStroke(colorset.GetColor(), 2.f, IStrokeOptions(), &mBlend);
+    g.PathStroke(colorset.GetColor(), 1.f, IStrokeOptions(), &mBlend);
 
     xPos = bounds.L;
     g.PathClear();
