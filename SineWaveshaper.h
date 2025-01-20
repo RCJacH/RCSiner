@@ -24,6 +24,13 @@ public:
   void SetPull(double pull) { mPull = pull; }
   void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
   void SetCurve(double curve) { mCurve = curve; }
+  void SetStages(double stages)
+  {
+    double baseStages;
+    mStagePct = std::modf(stages, &baseStages);
+    mBaseStages = static_cast<int>(baseStages);
+    mOverStages = static_cast<int>(baseStages + std::ceil(mStagePct));
+  }
   void SetPreClip(bool clip) { mPreClip = clip; }
   void SetPostClip(bool clip) { mPostClip = clip; }
   iplug::sample ProcessSample(iplug::sample sample)
@@ -32,24 +39,21 @@ public:
     auto uInput = std::abs(sample);
     if (mPreClip)
       uInput = std::min(uInput, 1.);
-    switch (mAlgorithm)
+
+    auto post = uInput;
+    for (int i = 1; i <= mOverStages; i++)
     {
-    case kSinXPlusX:
-      uInput = SinXPlusX(uInput);
-      break;
-    case kSinXPlusSinX:
-      uInput = SinXPlusSinX(uInput);
-      break;
-    case kSinXPlusSinXPI:
-      uInput = SinXPlusSinXPI(uInput);
-      break;
-    case kSinXPlusXBound:
-      uInput = SinXPlusXBound(uInput);
-      break;
-    case kSinXPowEuler:
-      uInput = SinXPowEuler(uInput);
-      break;
+      post = ApplyAlgoritm(uInput);
+      if (i == mBaseStages && mStagePct > 0.)
+      {
+        uInput = iplug::Lerp(uInput, post, mStagePct);
+      }
+      else
+      {
+        uInput = post;
+      }
     }
+
     if (mPostClip)
       uInput = clip(uInput);
     return uInput * signMul;
@@ -60,6 +64,9 @@ private:
   double mPull;
   double mSqueeze;
   double mCurve;
+  int mBaseStages;
+  int mOverStages;
+  double mStagePct;
   bool mPreClip;
   bool mPostClip;
 
@@ -81,5 +88,21 @@ private:
     if (!s)
       return s;
     return sign(s) * std::pow(std::abs(s), mCurve);
+  }
+  iplug::sample ApplyAlgoritm(iplug::sample x)
+  {
+    switch (mAlgorithm)
+    {
+    case kSinXPlusX:
+      return SinXPlusX(x);
+    case kSinXPlusSinX:
+      return SinXPlusSinX(x);
+    case kSinXPlusSinXPI:
+      return SinXPlusSinXPI(x);
+    case kSinXPlusXBound:
+      return SinXPlusXBound(x);
+    case kSinXPowEuler:
+      return SinXPowEuler(x);
+    }
   }
 };

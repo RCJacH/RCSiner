@@ -213,6 +213,7 @@ void RCSiner::OnParamChange(int idx)
     mSineWaveshaper.SetCurve(value);
     break;
   case kStages:
+    mSineWaveshaper.SetStages(value);
     break;
   case kPreClip:
     mSineWaveshaper.SetPreClip(value);
