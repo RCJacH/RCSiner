@@ -182,6 +182,8 @@ void RCDragBox::DrawValueText(IGraphics& g, WidgetColorSet colorset, IRECT bound
     return;
 
   IColor textColor = colorset.GetLabelColor();
+  if (mStyle.drawBG && colorset.GetContrast(colorset.mLabelColor, colorset.mBGColor) < 1.5f)
+    textColor.Contrast(-.5f);
   const IText& text = mStyle.GetText().WithFGColor(textColor);
   auto valueStr = mValueStr.Get();
   const char* spacePos = strchr(valueStr, ' ');

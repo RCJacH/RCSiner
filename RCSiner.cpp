@@ -158,6 +158,29 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(14.f);
     const RCStyle styleDisplay = styleController.WithColor(GetSectionWidgetColor(colorWaveform)).WithDrawFrame();
     const RCStyle styleSelector = styleController.WithColor(GetSectionWidgetColor(colorSelector));
+    auto shuffleSelectorColors = [&]() {
+      for (int i = 0; i < 3; i++)
+      {
+        auto colorset = styleSelector.GetColors(i == 1, i == 2);
+        auto mainColor = colorset.mMainColor;
+        auto bgColor = colorset.mBGColor;
+        colorset.SetBGColor(mainColor);
+        colorset.SetMainColor(bgColor);
+        switch (i)
+        {
+        case 0:
+          styleSelector.Colors.Get().normalColors = colorset;
+          break;
+        case 1:
+          styleSelector.Colors.Get().hoverColors = colorset;
+          break;
+        case 2:
+          styleSelector.Colors.Get().pressColors = colorset;
+          break;
+        }
+      }
+    };
+    shuffleSelectorColors();
     styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
 
     AddPanelBG(rectWaveform.GetPadded(sizeBorderModule), colorWaveformSectionBorder);
@@ -169,7 +192,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new RCSwitchButton(rectWaveformOutClip, kPostClip, "CLIP", styleClip));
     pGraphics->AttachControl(new RCLabel(rectWaveformOutLabel, "OUT", EDirection::Horizontal, styleOutputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformOutSlider, kOutputGain, "", RCSlider::Vertical, styleOutput));
-    pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
+    pGraphics->AttachControl(new RCDragBox(rectWaveformSelector, kAlgorithm, "", RCDragBox::Horizontal, styleSelector));
+    // pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
     pGraphics->AttachControl(new SineWaveshaperDisplay(rectWaveformDisplay, mSineWaveshaper, styleDisplay), kCtrlSineWaveshaperDisplay);
 
     // Control Section
