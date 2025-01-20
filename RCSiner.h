@@ -29,6 +29,7 @@ public:
   RCSiner(const InstanceInfo& info);
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
+  void OnParamChange(int idx) override;
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
 #endif
 

@@ -195,6 +195,34 @@ RCSiner::RCSiner(const InstanceInfo& info)
 }
 
 #if IPLUG_DSP
+void RCSiner::OnParamChange(int idx)
+{
+  auto value = GetParam(idx)->Value();
+  switch (idx)
+  {
+  case kAlgorithm:
+    mSineWaveshaper.SetAlgorithm(value);
+    break;
+  case kPull:
+    mSineWaveshaper.SetPull(value);
+    break;
+  case kSqueeze:
+    mSineWaveshaper.SetSqueeze(value);
+    break;
+  case kCurve:
+    mSineWaveshaper.SetCurve(value);
+    break;
+  case kStages:
+    break;
+  case kPreClip:
+    mSineWaveshaper.SetPreClip(value);
+    break;
+  case kPostClip:
+    mSineWaveshaper.SetPostClip(value);
+    break;
+  }
+}
+
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
   const double wetAmp = GetParam(kWetness)->Value() * .01;
