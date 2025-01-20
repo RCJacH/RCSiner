@@ -143,10 +143,10 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectWaveformOutSlider = rectWaveformRight;
 
     const RCStyle styleInput = styleController.WithColor(GetSectionWidgetColor(colorInput));
-    const RCStyle styleInputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(14.f);
+    const RCStyle styleInputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(16.f);
     const RCStyle styleOutput = styleController.WithColor(GetSectionWidgetColor(colorOutput));
-    const RCStyle styleOutputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(14.f);
-    const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(12.f);
+    const RCStyle styleOutputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(16.f);
+    const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(14.f);
     const RCStyle styleDisplay = styleController.WithColor(GetSectionWidgetColor(colorWaveform)).WithDrawFrame();
     const RCStyle styleSelector = styleController.WithColor(GetSectionWidgetColor(colorSelector));
     styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
