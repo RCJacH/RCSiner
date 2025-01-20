@@ -24,11 +24,8 @@ public:
   void SetPull(double pull) { mPull = pull; }
   void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
   void SetCurve(double curve) { mCurve = curve; }
-  void SetClip(int clipflag)
-  {
-    mPreClip = clipflag & 1;
-    mPostClip = clipflag & 2;
-  }
+  void SetPreClip(bool clip) { mPreClip = clip; }
+  void SetPostClip(bool clip) { mPostClip = clip; }
   iplug::sample ProcessSample(iplug::sample sample)
   {
     const auto signMul = sign(sample);

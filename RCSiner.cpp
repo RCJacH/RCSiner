@@ -16,6 +16,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kSqueeze)->InitDouble("Squeeze", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kCurve)->InitDouble("Curve", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kStages)->InitDouble("Stages", 1, 1, 8, .01);
+  GetParam(kPreClip)->InitBool("Pre Clip", 0);
+  GetParam(kPostClip)->InitBool("Post Clip", 0);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 24., .1, "dB");
   GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
@@ -128,14 +130,14 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectWaveformSelector = rectWaveformMid.GetFromBottom(heightWaveformSelector);
     IRECT rectWaveformLeft = rectWaveformInPadding.GetFromLeft(widthWaveformControl);
     IRECT rectWaveformRight = rectWaveformInPadding.GetFromRight(widthWaveformControl);
-    const IRECT rectWaveformInClip = rectWaveformLeft.ReduceFromTop(heightWaveformClip);
-    const IRECT rectWaveformOutClip = rectWaveformRight.ReduceFromTop(heightWaveformClip);
-    rectWaveformLeft.ReduceFromTop(sizePaddingModule);
-    rectWaveformRight.ReduceFromTop(sizePaddingModule);
-    const IRECT rectWaveformInLabel = rectWaveformLeft.ReduceFromBottom(16.f);
-    const IRECT rectWaveformOutLabel = rectWaveformRight.ReduceFromBottom(16.f);
+    const IRECT rectWaveformInClip = rectWaveformLeft.ReduceFromBottom(heightWaveformClip);
+    const IRECT rectWaveformOutClip = rectWaveformRight.ReduceFromBottom(heightWaveformClip);
     rectWaveformLeft.ReduceFromBottom(sizePaddingModule);
     rectWaveformRight.ReduceFromBottom(sizePaddingModule);
+    const IRECT rectWaveformInLabel = rectWaveformLeft.ReduceFromTop(16.f);
+    const IRECT rectWaveformOutLabel = rectWaveformRight.ReduceFromTop(16.f);
+    rectWaveformLeft.ReduceFromTop(sizePaddingModule);
+    rectWaveformRight.ReduceFromTop(sizePaddingModule);
     const IRECT rectWaveformInSlider = rectWaveformLeft;
     const IRECT rectWaveformOutSlider = rectWaveformRight;
 
@@ -144,14 +146,15 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleOutput = styleController.WithColor(GetSectionWidgetColor(colorOutput));
     const RCStyle styleOutputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(14.f);
     const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(12.f);
+    styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
 
     AddPanelBG(rectWaveform.GetPadded(sizeBorderModule), colorWaveformSectionBorder);
     AddPanelBG(rectWaveform, colorWaveformSectionBG);
 
-    pGraphics->AttachControl(new RCButton(rectWaveformInClip, [](IControl* pCaller) {}, "CLIP", styleClip));
+    pGraphics->AttachControl(new RCSwitchButton(rectWaveformInClip, kPreClip, "CLIP", styleClip));
     pGraphics->AttachControl(new RCLabel(rectWaveformInLabel, "IN", EDirection::Horizontal, styleInputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformInSlider, kInputGain, "", RCSlider::Vertical, styleInput));
-    pGraphics->AttachControl(new RCButton(rectWaveformOutClip, [](IControl* pCaller) {}, "CLIP", styleClip));
+    pGraphics->AttachControl(new RCSwitchButton(rectWaveformOutClip, kPostClip, "CLIP", styleClip));
     pGraphics->AttachControl(new RCLabel(rectWaveformOutLabel, "OUT", EDirection::Horizontal, styleOutputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformOutSlider, kOutputGain, "", RCSlider::Vertical, styleOutput));
 
