@@ -77,8 +77,26 @@ public:
   virtual void DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bounds, float borderWidth);
   virtual void DrawValueText(IGraphics& g, WidgetColorSet colorset, IRECT bounds, EDirection dir, double pct);
 
+  void MouseLClickAction(const IMouseMod& mod) override
+  {
+    if (!mIsStepped)
+      return RCSliderControlBase::MouseLClickAction(mod);
+
+    const IParam* pParam = GetParam();
+    if (!pParam)
+      return;
+    double value = pParam->Value();
+    value += pParam->GetStep();
+    double max = pParam->GetMax();
+    if (value > max)
+      value = fmod(value + pParam->GetStep(), 1.);
+    SetValue(value / max);
+  }
+
   void OnResize() override;
   void SetDirty(bool push, int valIdx = kNoValIdx) override;
+  void CreateContextMenu(IPopupMenu& contextMenu) override;
+  void OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx) override;
   void OnInit() override;
 
 protected:
@@ -87,6 +105,8 @@ protected:
   WDL_String mValueStr;
   bool mDisplayUnit;
   float mGapSize;
+  bool mIsStepped = false;
+  IPopupMenu mMenu{"Options"};
 };
 
 
@@ -211,12 +231,49 @@ void RCDragBox::SetDirty(bool push, int valIdx)
     pParam->GetDisplayWithLabel(mValueStr);
 }
 
+void RCDragBox::CreateContextMenu(IPopupMenu& contextMenu)
+{
+  mMouseControl.ReleaseL();
+  if (!mIsStepped)
+    return;
+
+  mMenu.Clear(true);
+
+  const IParam* pParam = GetParam();
+  auto cur_v = pParam->Value();
+  double v = pParam->GetMin();
+  auto step = pParam->GetStep();
+  int i = 0;
+  while (v <= pParam->GetMax())
+  {
+    auto text = pParam->GetDisplayText(v);
+    mMenu.AddItem(text);
+    mMenu.CheckItem(i, v == cur_v);
+    v += step;
+    i++;
+  }
+
+  GetUI()->CreatePopupMenu(*this, mMenu, mMouseControl.cur_x, mMouseControl.cur_y);
+}
+
+void RCDragBox::OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx)
+{
+  if (pSelectedMenu)
+  {
+    const IParam* pParam = GetParam();
+    SetValue(pParam->ToNormalized(pSelectedMenu->GetChosenItemIdx()));
+    SetDirty(true);
+  }
+}
 void RCDragBox::OnInit()
 {
   const IParam* pParam = GetParam();
 
   if (pParam)
+  {
     pParam->GetDisplayWithLabel(mValueStr);
+    mIsStepped = pParam->Type() == IParam::kTypeEnum;
+  }
 }
 
 END_IGRAPHICS_NAMESPACE
