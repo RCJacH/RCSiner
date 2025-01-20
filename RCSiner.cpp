@@ -189,11 +189,17 @@ RCSiner::RCSiner(const InstanceInfo& info)
     AddPanelBG(rectControls, colorControlsSectionBG);
 
     pGraphics->AttachControl(new RCLabel(rectControlsPullLabel, "Pull (A)", EDirection::Horizontal, stylePullLabel, 0.f, RCLabel::Position::Center));
-    pGraphics->AttachControl(new RCSlider(rectControlsPullSlider, kPull, "", RCSlider::Horizontal, stylePull));
+    auto sliderPull = new RCSlider(rectControlsPullSlider, kPull, "", RCSlider::Horizontal, stylePull);
+    sliderPull->SetRoundBy(2.f);
+    pGraphics->AttachControl(sliderPull);
     pGraphics->AttachControl(new RCLabel(rectControlsSqueezeLabel, "Squeeze (B)", EDirection::Horizontal, styleSqueezeLabel, 0.f, RCLabel::Position::Center));
-    pGraphics->AttachControl(new RCSlider(rectControlsSqueezeSlider, kSqueeze, "", RCSlider::Horizontal, styleSqueeze));
+    auto sliderSqueeze = new RCSlider(rectControlsSqueezeSlider, kSqueeze, "", RCSlider::Horizontal, styleSqueeze);
+    sliderSqueeze->SetRoundBy(2.f);
+    pGraphics->AttachControl(sliderSqueeze);
     pGraphics->AttachControl(new RCLabel(rectControlsCurveLabel, "Curve (C)", EDirection::Horizontal, styleCurveLabel, 0.f, RCLabel::Position::Center));
-    pGraphics->AttachControl(new RCSlider(rectControlsCurveSlider, kCurve, "", RCSlider::Horizontal, styleCurve));
+    auto sliderCurve = new RCSlider(rectControlsCurveSlider, kCurve, "", RCSlider::Horizontal, styleCurve);
+    sliderCurve->SetRoundBy(2.f);
+    pGraphics->AttachControl(sliderCurve);
     pGraphics->AttachControl(new RCLabel(rectControlsStagesLabel, "Stages", EDirection::Horizontal, styleStagesLabel, 0.f, RCLabel::Position::Center));
     pGraphics->AttachControl(new RCSlider(rectControlsStagesSlider, kStages, "", RCSlider::Horizontal, styleStages));
   };

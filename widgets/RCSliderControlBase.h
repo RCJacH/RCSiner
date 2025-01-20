@@ -1,6 +1,19 @@
 #pragma once
 
 #include "widgets/RCControl.h"
+#include <cmath>
+
+float sign(float sample) { return signbit(sample) ? -1. : 1.; };
+
+float RoundBy(float x, float mult = 10.f)
+{
+  auto absx = std::abs(x);
+  auto digits = static_cast<int>(std::log(absx - 0.00001) / std::log(mult));
+  auto multiplier = std::pow(mult, -digits);
+  auto rounded = std::round(absx * multiplier) / multiplier;
+  return sign(x) * rounded;
+};
+
 
 BEGIN_IPLUG_NAMESPACE
 BEGIN_IGRAPHICS_NAMESPACE
@@ -32,10 +45,11 @@ public:
   // void MouseRDragAction(float dX, float dY, const IMouseMod& mod) override;
   void OnMouseWheel(float x, float y, const IMouseMod& mod, float d) override;
   void CreateContextMenu(IPopupMenu& contextMenu) override;
+  void SetRoundBy(float v) { mRoundBy = v; }
 
   void SetGearing(double gearing) { mGearing = gearing; }
   bool IsFineControl(const IMouseMod& mod, bool wheel) const;
-  bool IsReset(const IMouseMod& mod) const;
+  bool IsStep(const IMouseMod& mod) const;
   bool IsAssign(const IMouseMod& mod) const;
 
 protected:
@@ -45,6 +59,7 @@ protected:
   double mGearing;
   double mMouseLDownValue;
   double mMouseRDownValue;
+  float mRoundBy = 10.f;
 };
 
 RCSliderControlBase::RCSliderControlBase(const IRECT& bounds, int paramIdx, EDirection dir, double gearing, float handleSize)
@@ -79,8 +94,6 @@ void RCSliderControlBase::MouseLPressAction(const IMouseMod& mod) { mMouseLDownV
 
 void RCSliderControlBase::MouseLClickAction(const IMouseMod& mod)
 {
-  if (IsReset(mod))
-    SetValueToDefault(GetValIdxForPos(mMouseControl.cur_x, mMouseControl.cur_y));
   if (IsAssign(mod))
   {
     const IParam* pParam = GetParam();
@@ -94,7 +107,7 @@ void RCSliderControlBase::MouseLClickAction(const IMouseMod& mod)
   }
 }
 
-void RCSliderControlBase::OnMouseDblClick(float x, float y, const IMouseMod& mod) { PromptUserInput(GetValIdxForPos(x, y)); }
+void RCSliderControlBase::OnMouseDblClick(float x, float y, const IMouseMod& mod) { SetValueToDefault(GetValIdxForPos(x, y)); }
 
 void RCSliderControlBase::MouseLDragAction(float dX, float dY, const IMouseMod& mod)
 {
@@ -113,7 +126,8 @@ void RCSliderControlBase::MouseLDragAction(float dX, float dY, const IMouseMod& 
 
   if (pParam && pParam->GetStepped() && pParam->GetStep() > 0)
     v = pParam->ConstrainNormalized(v);
-
+  if (IsStep(mod))
+    v = pParam->ToNormalized(RoundBy(pParam->FromNormalized(v), mRoundBy));
   SetValue(v);
 }
 
@@ -162,7 +176,7 @@ bool RCSliderControlBase::IsFineControl(const IMouseMod& mod, bool wheel) const
 #endif
 }
 
-bool RCSliderControlBase::IsReset(const IMouseMod& mod) const
+bool RCSliderControlBase::IsStep(const IMouseMod& mod) const
 {
 #ifdef PROTOOLS
   return mod.A;
