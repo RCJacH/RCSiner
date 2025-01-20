@@ -11,7 +11,7 @@
 RCSiner::RCSiner(const InstanceInfo& info)
   : iplug::Plugin(info, MakeConfig(kNumParams, kNumPresets))
 {
-  GetParam(kAlgorithm)->InitEnum("Algorithm", 0, {});
+  GetParam(kAlgorithm)->InitEnum("Algorithm", 0, mSineWaveshaper.Algorithms);
   GetParam(kPull)->InitDouble("Pull", 1., .5, 16., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kSqueeze)->InitDouble("Squeeze", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kCurve)->InitDouble("Curve", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
@@ -146,6 +146,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleOutput = styleController.WithColor(GetSectionWidgetColor(colorOutput));
     const RCStyle styleOutputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(14.f);
     const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(12.f);
+    const RCStyle styleSelector = styleController.WithColor(GetSectionWidgetColor(colorSelector));
     styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
 
     AddPanelBG(rectWaveform.GetPadded(sizeBorderModule), colorWaveformSectionBorder);
@@ -157,6 +158,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new RCSwitchButton(rectWaveformOutClip, kPostClip, "CLIP", styleClip));
     pGraphics->AttachControl(new RCLabel(rectWaveformOutLabel, "OUT", EDirection::Horizontal, styleOutputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformOutSlider, kOutputGain, "", RCSlider::Vertical, styleOutput));
+    pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
 
     // Control Section
     IRECT rectControlInPadding = rectControls.GetOffset(sizePaddingModule, 0.f, -sizePaddingModule, -sizePaddingModule);
@@ -182,11 +184,11 @@ RCSiner::RCSiner(const InstanceInfo& info)
     AddPanelBG(rectControls.GetPadded(sizeBorderModule), colorControlsSectionBorder);
     AddPanelBG(rectControls, colorControlsSectionBG);
 
-    pGraphics->AttachControl(new RCLabel(rectControlsPullLabel, "Pull", EDirection::Horizontal, stylePullLabel, 0.f, RCLabel::Position::Center));
+    pGraphics->AttachControl(new RCLabel(rectControlsPullLabel, "Pull (A)", EDirection::Horizontal, stylePullLabel, 0.f, RCLabel::Position::Center));
     pGraphics->AttachControl(new RCSlider(rectControlsPullSlider, kPull, "", RCSlider::Horizontal, stylePull));
-    pGraphics->AttachControl(new RCLabel(rectControlsSqueezeLabel, "Squeeze", EDirection::Horizontal, styleSqueezeLabel, 0.f, RCLabel::Position::Center));
+    pGraphics->AttachControl(new RCLabel(rectControlsSqueezeLabel, "Squeeze (B)", EDirection::Horizontal, styleSqueezeLabel, 0.f, RCLabel::Position::Center));
     pGraphics->AttachControl(new RCSlider(rectControlsSqueezeSlider, kSqueeze, "", RCSlider::Horizontal, styleSqueeze));
-    pGraphics->AttachControl(new RCLabel(rectControlsCurveLabel, "Curve", EDirection::Horizontal, styleCurveLabel, 0.f, RCLabel::Position::Center));
+    pGraphics->AttachControl(new RCLabel(rectControlsCurveLabel, "Curve (C)", EDirection::Horizontal, styleCurveLabel, 0.f, RCLabel::Position::Center));
     pGraphics->AttachControl(new RCSlider(rectControlsCurveSlider, kCurve, "", RCSlider::Horizontal, styleCurve));
     pGraphics->AttachControl(new RCLabel(rectControlsStagesLabel, "Stages", EDirection::Horizontal, styleStagesLabel, 0.f, RCLabel::Position::Center));
     pGraphics->AttachControl(new RCSlider(rectControlsStagesSlider, kStages, "", RCSlider::Horizontal, styleStages));

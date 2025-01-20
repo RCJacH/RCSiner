@@ -20,6 +20,9 @@ public:
     kSinXPowEuler
   };
 
+  static constexpr std::initializer_list<const char*> Algorithms = {
+    "sin(Aπx^B)^C", "(x - sin(Aπx^B)^C) / 2", "(sin(x) - sin(Aπx^Bπ)^C) / 2", "(sin(πx) - sin(Aπx^B)^C) / 2", "(1-x)(sin(Aπx^B)^C) + x", "sin(Aπx^B^e)^C"};
+
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
   void SetPull(double pull) { mPull = pull; }
   void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
