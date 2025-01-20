@@ -23,6 +23,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 24., .1, "dB");
   GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
+  GetParam(kOverSample)->InitEnum("OverSample", 0, {"None", "2x", "4x", "8x", "16x"});
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_WIDTH, PLUG_HEIGHT)); };
@@ -108,9 +109,14 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectHeaderContent = rectHeader.GetVPadded(-4.f);
     const IRECT rectHeaderTitle = rectHeaderContent.GetTranslated(1.f, 0.f).GetFromLeft(titleBitmap.W()).GetMidVPadded(titleBitmap.H() * .5f);
     const IRECT rectHeaderVersion = rectHeaderTitle.GetTranslated(rectHeaderTitle.W(), 0.f).GetFromLeft(48.f).GetReducedFromTop(10.f).GetTranslated(4.f, 0.f);
-    const IRECT rectHeaderDryWet = rectHeaderContent.GetReducedFromTop(3.f);
-    const IRECT rectHeaderDryWetSlider = rectHeaderDryWet.GetFromRight(60.f);
-    const IRECT rectHeaderDryWetLabel = rectHeaderDryWet.GetReducedFromRight(rectHeaderDryWetSlider.W() + 4.f);
+    IRECT rectHeaderControls = rectHeaderContent.GetReducedFromLeft(rectHeaderTitle.W() + rectHeaderVersion.W()).GetReducedFromTop(3.f);
+    const IRECT rectHeaderDryWetSlider = rectHeaderControls.ReduceFromRight(60.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderDryWetLabel = rectHeaderControls.ReduceFromRight(28.f).GetReducedFromTop(7.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderOverSampleSlider = rectHeaderControls.ReduceFromRight(60.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderOverSampleLabel = rectHeaderControls.GetReducedFromTop(7.f);
 
     const Color::HSLA colorHeader = colorPluginBG;
 
@@ -122,9 +128,10 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new IBButtonControl(rectHeaderTitle, titleBitmap, [](IControl* pCaller) {}));
     pGraphics->AttachControl(new RCLabel(rectHeaderVersion, cString, EDirection::Horizontal, styleVersion, 0.0f));
 
-    pGraphics->AttachControl(new RCDragBox(rectHeaderDryWetSlider, kWetness, "", RCDragBox::Horizontal, styleDryWet.WithValueTextHAlign(EAlign::Far), 2.f, 0.f));
+    pGraphics->AttachControl(new RCDragBox(rectHeaderDryWetSlider, kWetness, "", RCDragBox::Horizontal, styleDryWet));
     pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Mix", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
-    // pGraphics->AttachControl(new RCSlider(rectHeaderDryWetSlider, kWetness, "", RCSlider::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCDragBox(rectHeaderOverSampleSlider, kOverSample, "", RCDragBox::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCLabel(rectHeaderOverSampleLabel, "OS", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
 
     // Waveform Section
     const IRECT rectWaveformInPadding = rectWaveform.GetPadded(-sizePaddingModule);

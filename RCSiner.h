@@ -18,6 +18,7 @@ enum EParams
   kInputGain,
   kOutputGain,
   kWetness,
+  kOverSample,
   kNumParams
 };
 
