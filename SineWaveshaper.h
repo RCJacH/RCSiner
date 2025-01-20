@@ -21,9 +21,9 @@ public:
   };
 
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
-  void SetPull(double pull) { mPull = std::exp(std::log(.5) + pull * (std::log(16.) - std::log(.5))); }
-  void SetSqueeze(double squeeze) { mSqueeze = std::exp(std::log(.25) + squeeze * (std::log(4) - std::log(.25))); }
-  void SetCurve(double curve) { mCurve = std::exp(std::log(.25) + curve * (std::log(4) - std::log(.25))); }
+  void SetPull(double pull) { mPull = pull; }
+  void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
+  void SetCurve(double curve) { mCurve = curve; }
   void SetClip(int clipflag)
   {
     mPreClip = clipflag & 1;

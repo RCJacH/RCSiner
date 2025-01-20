@@ -11,6 +11,7 @@ enum EParams
   kPull,
   kSqueeze,
   kCurve,
+  kStages,
   kClipFlag,
   kInputGain,
   kOutputGain,
