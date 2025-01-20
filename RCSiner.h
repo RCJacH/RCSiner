@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IPlug_include_in_plug_hdr.h"
+#include "Oversampler.h"
 #include "SineWaveshaper.h"
 
 const int kNumPresets = 1;
@@ -41,4 +42,5 @@ public:
 
 private:
   SineWaveshaper mSineWaveshaper = SineWaveshaper();
+  iplug::OverSampler<iplug::sample> mOversampler = iplug::OverSampler(EFactor::kNone, true, 2, 2);
 };

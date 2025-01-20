@@ -4,6 +4,7 @@
 #include "SineWaveshaperDisplay.h"
 #include "widgets/Color.h"
 #include "widgets/RCButton.h"
+#include "widgets/RCDragBox.h"
 #include "widgets/RCLabel.h"
 #include "widgets/RCPanel.h"
 #include "widgets/RCSlider.h"
@@ -108,7 +109,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectHeaderTitle = rectHeaderContent.GetTranslated(1.f, 0.f).GetFromLeft(titleBitmap.W()).GetMidVPadded(titleBitmap.H() * .5f);
     const IRECT rectHeaderVersion = rectHeaderTitle.GetTranslated(rectHeaderTitle.W(), 0.f).GetFromLeft(48.f).GetReducedFromTop(10.f).GetTranslated(4.f, 0.f);
     const IRECT rectHeaderDryWet = rectHeaderContent.GetReducedFromTop(3.f);
-    const IRECT rectHeaderDryWetSlider = rectHeaderDryWet.GetFromRight(128.f);
+    const IRECT rectHeaderDryWetSlider = rectHeaderDryWet.GetFromRight(60.f);
     const IRECT rectHeaderDryWetLabel = rectHeaderDryWet.GetReducedFromRight(rectHeaderDryWetSlider.W() + 4.f);
 
     const Color::HSLA colorHeader = colorPluginBG;
@@ -121,8 +122,9 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new IBButtonControl(rectHeaderTitle, titleBitmap, [](IControl* pCaller) {}));
     pGraphics->AttachControl(new RCLabel(rectHeaderVersion, cString, EDirection::Horizontal, styleVersion, 0.0f));
 
-    pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Dry/Wet", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
-    pGraphics->AttachControl(new RCSlider(rectHeaderDryWetSlider, kWetness, "", RCSlider::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCDragBox(rectHeaderDryWetSlider, kWetness, "", RCDragBox::Horizontal, styleDryWet.WithValueTextHAlign(EAlign::Far), 2.f, 0.f));
+    pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Mix", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
+    // pGraphics->AttachControl(new RCSlider(rectHeaderDryWetSlider, kWetness, "", RCSlider::Horizontal, styleDryWet));
 
     // Waveform Section
     const IRECT rectWaveformInPadding = rectWaveform.GetPadded(-sizePaddingModule);
@@ -258,12 +260,14 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
   const double outGain = iplug::DBToAmp(GetParam(kOutputGain)->Value());
   const int nChans = NOutChansConnected();
 
-  for (int s = 0; s < nFrames; s++)
-  {
-    for (int c = 0; c < nChans; c++)
+  mOversampler.ProcessBlock(inputs, outputs, nFrames, 2, 2, [&](sample** osinputs, sample** osoutputs, int osnFrames) {
+    for (int s = 0; s < osnFrames; s++)
     {
-      outputs[c][s] = inputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(inputs[c][s] * inGain) * outGain * wetAmp;
+      for (int c = 0; c < nChans; c++)
+      {
+        osoutputs[c][s] = osinputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(osinputs[c][s] * inGain) * outGain * wetAmp;
+      }
     }
-  }
+  });
 }
 #endif
