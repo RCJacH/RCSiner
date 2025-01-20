@@ -38,10 +38,12 @@ public:
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
   void OnParamChange(int idx) override;
+  void OnReset() override;
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
 #endif
 
 private:
   SineWaveshaper mSineWaveshaper = SineWaveshaper();
+  EFactor mOverSampleFactor = EFactor::kNone;
   iplug::OverSampler<iplug::sample> mOversampler = iplug::OverSampler(EFactor::kNone, true, 2, 2);
 };

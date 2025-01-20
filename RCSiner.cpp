@@ -280,7 +280,16 @@ void RCSiner::OnParamChange(int idx)
   case kPostClip:
     mSineWaveshaper.SetPostClip(value);
     break;
+  case kOverSample:
+    mOverSampleFactor = static_cast<iplug::EFactor>(value);
+    break;
   }
+}
+
+void RCSiner::OnReset()
+{
+  mOversampler.SetOverSampling(mOverSampleFactor);
+  mOversampler.Reset(GetBlockSize());
 }
 
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
