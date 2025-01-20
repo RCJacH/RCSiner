@@ -20,6 +20,12 @@ enum EParams
   kNumParams
 };
 
+enum ECtrlTags
+{
+  kCtrlSineWaveshaperDisplay = 1000, // To avoid debugging other controls being affected
+  kNumCtrlTags
+};
+
 using namespace iplug;
 using namespace igraphics;
 

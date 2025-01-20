@@ -1,6 +1,7 @@
 #include "RCSiner.h"
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
+#include "SineWaveshaperDisplay.h"
 #include "widgets/Color.h"
 #include "widgets/RCButton.h"
 #include "widgets/RCLabel.h"
@@ -34,6 +35,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     // COLORS
     const Color::HSLA colorMain = Color::HSLA(4, .36f, .28f);
     const Color::HSLA colorPluginBG = colorMain.Scaled(0.f, -.5f, -.05f);
+    const Color::HSLA colorWaveform = colorMain.Scaled(0.f, -.8f, .8f);
     const Color::HSLA colorWaveformSectionBG = colorMain.Scaled(0.f, -.4f, -.55f);
     const Color::HSLA colorWaveformSectionBorder = colorMain.Scaled(0.f, -.75f, .5f);
     const Color::HSLA colorWaeformBG = colorMain.Scaled(0.f, -.8f, .8f);
@@ -90,7 +92,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const float widthWaveform = rectContentInMargin.W() - (widthWaveformControl + sizePaddingModule + sizePaddingModule) * 2.f;
     const float heightWaveform = widthWaveform;
     const float heightWaveformSelector = 32.f;
-    const float heightWaveformSection = heightWaveform + heightWaveformSelector;
+    const float heightWaveformSection = heightWaveform + heightWaveformSelector + sizePaddingModule * 3;
     const float heightWaveformClip = 22.f;
     const float heightControlsLabel = 22.f;
 
@@ -146,6 +148,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleOutput = styleController.WithColor(GetSectionWidgetColor(colorOutput));
     const RCStyle styleOutputLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorWaveformSectionBG)).WithValueTextSize(14.f);
     const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(12.f);
+    const RCStyle styleDisplay = styleController.WithColor(GetSectionWidgetColor(colorWaveform)).WithDrawFrame();
     const RCStyle styleSelector = styleController.WithColor(GetSectionWidgetColor(colorSelector));
     styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
 
@@ -159,6 +162,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new RCLabel(rectWaveformOutLabel, "OUT", EDirection::Horizontal, styleOutputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformOutSlider, kOutputGain, "", RCSlider::Vertical, styleOutput));
     pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
+    pGraphics->AttachControl(new SineWaveshaperDisplay(rectWaveformDisplay, mSineWaveshaper, styleDisplay), kCtrlSineWaveshaperDisplay);
 
     // Control Section
     IRECT rectControlInPadding = rectControls.GetOffset(sizePaddingModule, 0.f, -sizePaddingModule, -sizePaddingModule);
@@ -204,18 +208,33 @@ void RCSiner::OnParamChange(int idx)
   {
   case kAlgorithm:
     mSineWaveshaper.SetAlgorithm(value);
+    if (const auto ui = GetUI())
+      if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
+        ctrl->SetDirty(false);
     break;
   case kPull:
     mSineWaveshaper.SetPull(value);
+    if (const auto ui = GetUI())
+      if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
+        ctrl->SetDirty(false);
     break;
   case kSqueeze:
     mSineWaveshaper.SetSqueeze(value);
+    if (const auto ui = GetUI())
+      if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
+        ctrl->SetDirty(false);
     break;
   case kCurve:
     mSineWaveshaper.SetCurve(value);
+    if (const auto ui = GetUI())
+      if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
+        ctrl->SetDirty(false);
     break;
   case kStages:
     mSineWaveshaper.SetStages(value);
+    if (const auto ui = GetUI())
+      if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
+        ctrl->SetDirty(false);
     break;
   case kPreClip:
     mSineWaveshaper.SetPreClip(value);
