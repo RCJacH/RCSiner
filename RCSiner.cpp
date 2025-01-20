@@ -254,8 +254,8 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
   const double wetAmp = GetParam(kWetness)->Value() * .01;
   const double dryAmp = 1. - wetAmp;
-  const double inGain = GetParam(kInputGain)->Value() * .01;
-  const double outGain = GetParam(kOutputGain)->Value() * .01;
+  const double inGain = iplug::DBToAmp(GetParam(kInputGain)->Value());
+  const double outGain = iplug::DBToAmp(GetParam(kOutputGain)->Value());
   const int nChans = NOutChansConnected();
 
   for (int s = 0; s < nFrames; s++)
