@@ -26,6 +26,10 @@ struct WidgetColorSet
   float GetContrast(Color::HSLA a, Color::HSLA b) const { return (a.mL + .05f) / (b.mL + .05f); }
   float GetCoveredContrast() const { return GetContrast(mLabelColor, mMainColor); }
   float GetUncoveredContrast(bool isMain = false) const { return GetContrast(isMain ? mMainColor : mLabelColor, mBGColor); }
+  void SetMainColor(Color::HSLA color) { mMainColor = color; }
+  void SetBorderColor(Color::HSLA color) { mBorderColor = color; }
+  void SetBGColor(Color::HSLA color) { mBGColor = color; }
+  void SetLabelColor(Color::HSLA color) { mLabelColor = color; }
   WidgetColorSet GetComplement() const { return WidgetColorSet(mMainColor.Complement()); }
   IColor GetColor() const { return mMainColor.AsIColor(); }
   IColor GetBorderColor() const { return mBorderColor.AsIColor(); }

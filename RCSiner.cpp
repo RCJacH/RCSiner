@@ -4,6 +4,7 @@
 #include "SineWaveshaperDisplay.h"
 #include "widgets/Color.h"
 #include "widgets/RCButton.h"
+#include "widgets/RCDragBox.h"
 #include "widgets/RCLabel.h"
 #include "widgets/RCPanel.h"
 #include "widgets/RCSlider.h"
@@ -22,6 +23,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 24., .1, "dB");
   GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
+  GetParam(kOverSample)->InitEnum("OverSample", 0, {"None", "2x", "4x", "8x", "16x"});
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_WIDTH, PLUG_HEIGHT)); };
@@ -107,9 +109,14 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectHeaderContent = rectHeader.GetVPadded(-4.f);
     const IRECT rectHeaderTitle = rectHeaderContent.GetTranslated(1.f, 0.f).GetFromLeft(titleBitmap.W()).GetMidVPadded(titleBitmap.H() * .5f);
     const IRECT rectHeaderVersion = rectHeaderTitle.GetTranslated(rectHeaderTitle.W(), 0.f).GetFromLeft(48.f).GetReducedFromTop(10.f).GetTranslated(4.f, 0.f);
-    const IRECT rectHeaderDryWet = rectHeaderContent.GetReducedFromTop(3.f);
-    const IRECT rectHeaderDryWetSlider = rectHeaderDryWet.GetFromRight(128.f);
-    const IRECT rectHeaderDryWetLabel = rectHeaderDryWet.GetReducedFromRight(rectHeaderDryWetSlider.W() + 4.f);
+    IRECT rectHeaderControls = rectHeaderContent.GetReducedFromLeft(rectHeaderTitle.W() + rectHeaderVersion.W()).GetReducedFromTop(3.f);
+    const IRECT rectHeaderDryWetSlider = rectHeaderControls.ReduceFromRight(60.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderDryWetLabel = rectHeaderControls.ReduceFromRight(28.f).GetReducedFromTop(7.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderOverSampleSlider = rectHeaderControls.ReduceFromRight(60.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
+    const IRECT rectHeaderOverSampleLabel = rectHeaderControls.GetReducedFromTop(7.f);
 
     const Color::HSLA colorHeader = colorPluginBG;
 
@@ -121,8 +128,10 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new IBButtonControl(rectHeaderTitle, titleBitmap, [](IControl* pCaller) {}));
     pGraphics->AttachControl(new RCLabel(rectHeaderVersion, cString, EDirection::Horizontal, styleVersion, 0.0f));
 
-    pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Dry/Wet", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
-    pGraphics->AttachControl(new RCSlider(rectHeaderDryWetSlider, kWetness, "", RCSlider::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCDragBox(rectHeaderDryWetSlider, kWetness, "", RCDragBox::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Mix", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
+    pGraphics->AttachControl(new RCDragBox(rectHeaderOverSampleSlider, kOverSample, "", RCDragBox::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new RCLabel(rectHeaderOverSampleLabel, "OS", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
 
     // Waveform Section
     const IRECT rectWaveformInPadding = rectWaveform.GetPadded(-sizePaddingModule);
@@ -149,6 +158,29 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleClip = styleController.WithColor(Color::HSLA(4, .8f, .6f)).WithValueTextFont("FiraSans-SemiBold").WithValueTextSize(14.f);
     const RCStyle styleDisplay = styleController.WithColor(GetSectionWidgetColor(colorWaveform)).WithDrawFrame();
     const RCStyle styleSelector = styleController.WithColor(GetSectionWidgetColor(colorSelector));
+    auto shuffleSelectorColors = [&]() {
+      for (int i = 0; i < 3; i++)
+      {
+        auto colorset = styleSelector.GetColors(i == 1, i == 2);
+        auto mainColor = colorset.mMainColor;
+        auto bgColor = colorset.mBGColor;
+        colorset.SetBGColor(mainColor);
+        colorset.SetMainColor(bgColor);
+        switch (i)
+        {
+        case 0:
+          styleSelector.Colors.Get().normalColors = colorset;
+          break;
+        case 1:
+          styleSelector.Colors.Get().hoverColors = colorset;
+          break;
+        case 2:
+          styleSelector.Colors.Get().pressColors = colorset;
+          break;
+        }
+      }
+    };
+    shuffleSelectorColors();
     styleClip.Colors.Get().SetDisabledColors(colorPluginBG);
 
     AddPanelBG(rectWaveform.GetPadded(sizeBorderModule), colorWaveformSectionBorder);
@@ -160,7 +192,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new RCSwitchButton(rectWaveformOutClip, kPostClip, "CLIP", styleClip));
     pGraphics->AttachControl(new RCLabel(rectWaveformOutLabel, "OUT", EDirection::Horizontal, styleOutputLabel, 0.f));
     pGraphics->AttachControl(new RCSlider(rectWaveformOutSlider, kOutputGain, "", RCSlider::Vertical, styleOutput));
-    pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
+    pGraphics->AttachControl(new RCDragBox(rectWaveformSelector, kAlgorithm, "", RCDragBox::Horizontal, styleSelector));
+    // pGraphics->AttachControl(new RCButton(rectWaveformSelector, kAlgorithm, "", styleSelector));
     pGraphics->AttachControl(new SineWaveshaperDisplay(rectWaveformDisplay, mSineWaveshaper, styleDisplay), kCtrlSineWaveshaperDisplay);
 
     // Control Section
@@ -247,7 +280,16 @@ void RCSiner::OnParamChange(int idx)
   case kPostClip:
     mSineWaveshaper.SetPostClip(value);
     break;
+  case kOverSample:
+    mOverSampleFactor = static_cast<iplug::EFactor>(value);
+    break;
   }
+}
+
+void RCSiner::OnReset()
+{
+  mOversampler.SetOverSampling(mOverSampleFactor);
+  mOversampler.Reset(GetBlockSize());
 }
 
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
@@ -258,12 +300,14 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
   const double outGain = iplug::DBToAmp(GetParam(kOutputGain)->Value());
   const int nChans = NOutChansConnected();
 
-  for (int s = 0; s < nFrames; s++)
-  {
-    for (int c = 0; c < nChans; c++)
+  mOversampler.ProcessBlock(inputs, outputs, nFrames, 2, 2, [&](sample** osinputs, sample** osoutputs, int osnFrames) {
+    for (int s = 0; s < osnFrames; s++)
     {
-      outputs[c][s] = inputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(inputs[c][s] * inGain) * outGain * wetAmp;
+      for (int c = 0; c < nChans; c++)
+      {
+        osoutputs[c][s] = osinputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(osinputs[c][s] * inGain) * outGain * wetAmp;
+      }
     }
-  }
+  });
 }
 #endif
