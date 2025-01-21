@@ -205,7 +205,7 @@ void RCControl::OnMouseDown(float x, float y, const IMouseMod& mod)
     MouseLPressAction(mod);
   if (mMouseControl.IsRPressing())
     MouseRPressAction(mod);
-  SetDirty(true);
+  SetDirty(false);
 }
 
 void RCControl::OnMouseUp(float x, float y, const IMouseMod& mod)
