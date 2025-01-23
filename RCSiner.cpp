@@ -332,7 +332,10 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
     {
       for (int c = 0; c < nChans; c++)
       {
-        osoutputs[c][s] = osinputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(osinputs[c][s] * inGain) * outGain * wetAmp;
+        const auto spl = osinputs[c][s];
+        if (!spl)
+          continue; // This skips calculation because SineWaveshaper always return 0 when x is 0
+        osoutputs[c][s] = spl * dryAmp + mSineWaveshaper.ProcessSample(spl * inGain) * outGain * wetAmp;
       }
     }
   };
