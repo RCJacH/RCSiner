@@ -141,6 +141,8 @@ public:
     : IControl(bounds, paramIdx, aF) {};
   RCControl(const IRECT& bounds, IActionFunction aF)
     : IControl(bounds, aF) {};
+  RCControl(const IRECT& bounds, const std::initializer_list<int>& params, IActionFunction actionFunc = nullptr)
+    : IControl(bounds, params, actionFunc) {};
 
   virtual ~RCControl() {};
   void OnMouseOver(float x, float y, const IMouseMod& mod) override;
