@@ -7,6 +7,7 @@
 #include "widgets/RCButton.h"
 #include "widgets/RCDragBox.h"
 #include "widgets/RCLabel.h"
+#include "widgets/RCMeterControl.h"
 #include "widgets/RCPanel.h"
 #include "widgets/RCSlider.h"
 #include "widgets/RCStyle.h"
@@ -113,6 +114,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const IRECT rectHeaderTitle = rectHeaderContent.GetTranslated(1.f, 0.f).GetFromLeft(titleBitmap.W()).GetMidVPadded(titleBitmap.H() * .5f);
     const IRECT rectHeaderVersion = rectHeaderTitle.GetTranslated(rectHeaderTitle.W(), 0.f).GetFromLeft(48.f).GetReducedFromTop(10.f).GetTranslated(4.f, 0.f);
     IRECT rectHeaderControls = rectHeaderContent.GetReducedFromLeft(rectHeaderTitle.W() + rectHeaderVersion.W()).GetReducedFromTop(3.f);
+    const IRECT rectHeaderVolumeMeter = rectHeaderControls.ReduceFromRight(12.f);
+    rectHeaderControls.ReduceFromRight(gapModule);
     const IRECT rectHeaderDryWetSlider = rectHeaderControls.ReduceFromRight(60.f);
     rectHeaderControls.ReduceFromRight(gapModule);
     const IRECT rectHeaderDryWetLabel = rectHeaderControls.ReduceFromRight(28.f).GetReducedFromTop(7.f);
@@ -128,6 +131,16 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleDryWetHeader = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorControls));
     const RCStyle styleDryWet = styleController.WithColor(GetSectionWidgetColor(colorControls)).WithDrawFrame(false);
     const RCStyle styleOverSample = styleController.WithColor(GetSectionWidgetColor(colorControls)).WithValueTextFont("FiraSans-SemiBold");
+    const RCStyle styleMeter = styleController.WithShowValue(false);
+
+    const IVStyle ivstyleVolumeMeter = DEFAULT_STYLE.WithShowLabel(false)
+                                         .WithValueText(styleMeter.valueText.WithFGColor(styleMeter.GetColors(false, false).GetLabelColor().WithContrast(-.16f)))
+                                         .WithColor(kX1, styleMeter.GetColors().mLabelColor.WithHue(44).AsIColor())
+                                         .WithColor(kX2, styleMeter.GetColors().mLabelColor.Scaled(0, .8f).WithHue(0).AsIColor())
+                                         .WithColor(kHL, styleMeter.GetColors(false, false, true).GetBorderColor().WithOpacity(.25f))
+                                         .WithColor(kFG, styleMeter.GetColors(false, true).GetLabelColor())
+                                         .WithColor(kBG, styleMeter.GetColors().mMainColor.Scaled(0, -.5f, -.5f).AsIColor().WithOpacity(.5f))
+                                         .WithColor(kFR, styleMeter.GetColors(false, true).GetBorderColor().WithOpacity(.5f));
 
     pGraphics->AttachControl(new IBButtonControl(rectHeaderTitle, titleBitmap, [](IControl* pCaller) {}));
     pGraphics->AttachControl(new RCLabel(rectHeaderVersion, cString, EDirection::Horizontal, styleVersion, 0.0f));
@@ -136,6 +149,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Mix", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
     pGraphics->AttachControl(new OverSampleSelector(rectHeaderOverSampleSlider, kOverSample, kOverSampleOnline, kOverSampleOffline, styleOverSample));
     pGraphics->AttachControl(new RCLabel(rectHeaderOverSampleLabel, "OS", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
+    pGraphics->AttachControl(new RCPeakAvgMeterControl<2>(rectHeaderVolumeMeter, ivstyleVolumeMeter, EDirection::Vertical, {}, 0, -90.f, 0.f, {}), kCtrlTagOutputMeter);
 
     // Waveform Section
     const IRECT rectWaveformInPadding = rectWaveform.GetPadded(-sizePaddingModule);
@@ -243,7 +257,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
 }
 
 #if IPLUG_DSP
-void RCSiner::OnIdle() {}
+void RCSiner::OnIdle() { mOutputPeakSender.TransmitData(*this); }
 void RCSiner::OnParamChange(int idx)
 {
   auto value = GetParam(idx)->Value();
@@ -301,6 +315,7 @@ void RCSiner::OnReset()
   auto blocksize = GetBlockSize();
   mOversampler.SetBlockSize(blocksize);
   mOversamplerOffline.SetBlockSize(blocksize);
+  mOutputPeakSender.Reset(GetSampleRate());
 }
 
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
@@ -349,5 +364,8 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
   }
   else
     processFunc(inputs, outputs, nFrames);
+
+  if (GetUI())
+    mOutputPeakSender.ProcessBlock(outputs, nFrames, kCtrlTagOutputMeter, 2);
 }
 #endif

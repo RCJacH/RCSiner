@@ -2,7 +2,7 @@
 
 #include "BlockOversampler.h"
 #include "IPlug_include_in_plug_hdr.h"
-// #include "SampleOversampler.h"
+#include "ISender.h"
 #include "SineWaveshaper.h"
 
 const int kNumPresets = 1;
@@ -27,7 +27,8 @@ enum EParams
 
 enum ECtrlTags
 {
-  kCtrlSineWaveshaperDisplay = 1000, // To avoid debugging other controls being affected
+  kCtrlTagOutputMeter = 1000, // To avoid debugging other controls being affected
+  kCtrlSineWaveshaperDisplay,
   kNumCtrlTags
 };
 
@@ -44,6 +45,8 @@ public:
   void OnParamChange(int idx) override;
   void OnReset() override;
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
+
+  IPeakAvgSender<2> mOutputPeakSender;
 #endif
 
 private:
