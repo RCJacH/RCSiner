@@ -1,7 +1,8 @@
 #pragma once
 
+#include "BlockOversampler.h"
 #include "IPlug_include_in_plug_hdr.h"
-#include "Oversampler.h"
+// #include "SampleOversampler.h"
 #include "SineWaveshaper.h"
 
 const int kNumPresets = 1;
@@ -19,6 +20,8 @@ enum EParams
   kOutputGain,
   kWetness,
   kOverSample,
+  kOverSampleOnline,
+  kOverSampleOffline,
   kNumParams
 };
 
@@ -37,6 +40,7 @@ public:
   RCSiner(const InstanceInfo& info);
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
+  void OnIdle() override;
   void OnParamChange(int idx) override;
   void OnReset() override;
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
@@ -44,6 +48,8 @@ public:
 
 private:
   SineWaveshaper mSineWaveshaper = SineWaveshaper();
-  EFactor mOverSampleFactor = EFactor::kNone;
-  iplug::OverSampler<iplug::sample> mOversampler = iplug::OverSampler(EFactor::kNone, true, 2, 2);
+  BlockOverSampler<sample> mOversampler = BlockOverSampler(EFactor::kNone, 2, 2, GetBlockSize());
+  BlockOverSampler<sample> mOversamplerOffline = BlockOverSampler(EFactor::kNone, 2, 2, GetBlockSize());
+  bool mPendingUpdateOversampler = false;
+  bool mPendingUpdateOfflineOversampler = false;
 };

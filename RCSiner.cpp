@@ -1,6 +1,7 @@
 #include "RCSiner.h"
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
+#include "OverSampleSelector.h"
 #include "SineWaveshaperDisplay.h"
 #include "widgets/Color.h"
 #include "widgets/RCButton.h"
@@ -23,7 +24,9 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 24., .1, "dB");
   GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
-  GetParam(kOverSample)->InitEnum("OverSample", 0, {"None", "2x", "4x", "8x", "16x"});
+  GetParam(kOverSample)->InitBool("OverSample Switch", 0);
+  GetParam(kOverSampleOnline)->InitEnum("OverSample", 0, {"1x", "2x", "4x", "8x", "16x"});
+  GetParam(kOverSampleOffline)->InitEnum("OverSample (Render)", 0, {"Same as real-time", "1x", "2x", "4x", "8x", "16x"});
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_WIDTH, PLUG_HEIGHT)); };
@@ -123,14 +126,15 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const RCStyle styleHeader = styleMain.WithColor(colorHeader).WithDrawFrame(false).WithValueTextSize(16.f).WithValueTextFont("FiraSans-SemiBold");
     const RCStyle styleVersion = styleHeader.WithColor(GetSectionTitleLabelColor(colorHeader));
     const RCStyle styleDryWetHeader = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorControls));
-    const RCStyle styleDryWet = styleController.WithColor(GetSectionWidgetColor(colorControls));
+    const RCStyle styleDryWet = styleController.WithColor(GetSectionWidgetColor(colorControls)).WithDrawFrame(false);
+    const RCStyle styleOverSample = styleController.WithColor(GetSectionWidgetColor(colorControls)).WithValueTextFont("FiraSans-SemiBold");
 
     pGraphics->AttachControl(new IBButtonControl(rectHeaderTitle, titleBitmap, [](IControl* pCaller) {}));
     pGraphics->AttachControl(new RCLabel(rectHeaderVersion, cString, EDirection::Horizontal, styleVersion, 0.0f));
 
     pGraphics->AttachControl(new RCDragBox(rectHeaderDryWetSlider, kWetness, "", RCDragBox::Horizontal, styleDryWet));
     pGraphics->AttachControl(new RCLabel(rectHeaderDryWetLabel, "Mix", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
-    pGraphics->AttachControl(new RCDragBox(rectHeaderOverSampleSlider, kOverSample, "", RCDragBox::Horizontal, styleDryWet));
+    pGraphics->AttachControl(new OverSampleSelector(rectHeaderOverSampleSlider, kOverSample, kOverSampleOnline, kOverSampleOffline, styleOverSample));
     pGraphics->AttachControl(new RCLabel(rectHeaderOverSampleLabel, "OS", EDirection::Horizontal, styleDryWetHeader, 0.0f, RCLabel::End));
 
     // Waveform Section
@@ -239,6 +243,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
 }
 
 #if IPLUG_DSP
+void RCSiner::OnIdle() {}
 void RCSiner::OnParamChange(int idx)
 {
   auto value = GetParam(idx)->Value();
@@ -280,16 +285,22 @@ void RCSiner::OnParamChange(int idx)
   case kPostClip:
     mSineWaveshaper.SetPostClip(value);
     break;
-  case kOverSample:
-    mOverSampleFactor = static_cast<iplug::EFactor>(value);
+  case kOverSampleOnline:
+    mPendingUpdateOversampler = true;
+    if (!GetParam(kOverSampleOffline)->Value())
+      mPendingUpdateOfflineOversampler = true;
+    break;
+  case kOverSampleOffline:
+    mPendingUpdateOfflineOversampler = true;
     break;
   }
 }
 
 void RCSiner::OnReset()
 {
-  mOversampler.SetOverSampling(mOverSampleFactor);
-  mOversampler.Reset(GetBlockSize());
+  auto blocksize = GetBlockSize();
+  mOversampler.SetBlockSize(blocksize);
+  mOversamplerOffline.SetBlockSize(blocksize);
 }
 
 void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
@@ -299,8 +310,24 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
   const double inGain = iplug::DBToAmp(GetParam(kInputGain)->Value());
   const double outGain = iplug::DBToAmp(GetParam(kOutputGain)->Value());
   const int nChans = NOutChansConnected();
+  const auto oversample = GetParam(kOverSample)->Value();
 
-  mOversampler.ProcessBlock(inputs, outputs, nFrames, 2, 2, [&](sample** osinputs, sample** osoutputs, int osnFrames) {
+  const auto oversampleOnline = static_cast<EFactor>(GetParam(kOverSampleOnline)->Value());
+  const auto oversampleOfflineValue = GetParam(kOverSampleOffline)->Value();
+  const auto oversampleOffline = !oversampleOfflineValue ? oversampleOnline : static_cast<EFactor>(oversampleOfflineValue - 1.);
+
+  if (mPendingUpdateOversampler)
+  {
+    mOversampler.SetOverSampling(oversampleOnline);
+    mPendingUpdateOversampler = false;
+  }
+  if (mPendingUpdateOfflineOversampler)
+  {
+    mOversamplerOffline.SetOverSampling(oversampleOffline);
+    mPendingUpdateOfflineOversampler = false;
+  }
+
+  auto processFunc = [&](sample** osinputs, sample** osoutputs, int osnFrames) {
     for (int s = 0; s < osnFrames; s++)
     {
       for (int c = 0; c < nChans; c++)
@@ -308,6 +335,16 @@ void RCSiner::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
         osoutputs[c][s] = osinputs[c][s] * dryAmp + mSineWaveshaper.ProcessSample(osinputs[c][s] * inGain) * outGain * wetAmp;
       }
     }
-  });
+  };
+
+  if (oversample)
+  {
+    if (GetRenderingOffline())
+      mOversamplerOffline.ProcessBlock(inputs, outputs, nFrames, 2, nChans, processFunc);
+    else
+      mOversampler.ProcessBlock(inputs, outputs, nFrames, 2, nChans, processFunc);
+  }
+  else
+    processFunc(inputs, outputs, nFrames);
 }
 #endif
