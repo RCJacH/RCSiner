@@ -30,6 +30,9 @@ protected:
   RCStyle mStyle;
   const char* mLabel;
   IPopupMenu mMenu{"OverSample Options"};
+  const int activateIdx = 0;
+  const int onlineIdx = 1;
+  const int offlineIdx = 2;
 
   void populateMenuItems(IPopupMenu& menu, int idx)
   {
@@ -65,7 +68,7 @@ void OverSampleSelector::Draw(IGraphics& g) { DrawWidget(g); }
 
 void OverSampleSelector::DrawWidget(IGraphics& g)
 {
-  const WidgetColorSet colorset = mStyle.GetColors(mMouseControl.IsHovering(), mMouseControl.IsLDown(), IsDisabled() || !(GetParam(0)->Value()));
+  const WidgetColorSet colorset = mStyle.GetColors(mMouseControl.IsHovering(), mMouseControl.IsLDown(), IsDisabled() || !(GetParam(activateIdx)->Value()));
   DrawBG(g, colorset, mRECT);
   DrawButtonText(g, mRECT, colorset);
 }
@@ -109,12 +112,12 @@ void OverSampleSelector::DrawButtonText(IGraphics& g, const IRECT& r, WidgetColo
 
 const char* OverSampleSelector::GetDisplayText()
 {
-  auto pParamOnline = GetParam(1);
-  auto pParamOffline = GetParam(2);
+  auto pParamOnline = GetParam(onlineIdx);
+  auto pParamOffline = GetParam(offlineIdx);
   if (!pParamOnline || !pParamOffline)
     return "";
 
-  if (!(GetParam(0)->Value()))
+  if (!(GetParam(activateIdx)->Value()))
     return pParamOnline->GetDisplayText(0);
 
   auto v = pParamOnline->Value();
@@ -134,10 +137,10 @@ const char* OverSampleSelector::GetDisplayText()
 
 void OverSampleSelector::MouseLClickAction(const IMouseMod& mod)
 {
-  const auto is_on = !(GetParam(0)->Value());
-  SetValue(is_on, 0);
-  if (is_on && !(GetParam(1)->Value()) && !(GetParam(2)->Value()))
-    SetValue(GetParam(1)->ToNormalized(1.), 1);
+  const auto is_on = !(GetParam(activateIdx)->Value());
+  SetValue(is_on, activateIdx);
+  if (is_on && !(GetParam(onlineIdx)->Value()) && !(GetParam(offlineIdx)->Value()))
+    SetValue(GetParam(onlineIdx)->ToNormalized(1.), onlineIdx);
 }
 
 
@@ -145,10 +148,10 @@ void OverSampleSelector::CreateContextMenu(IPopupMenu& contextMenu)
 {
   mMouseControl.ReleaseL();
   mMenu.Clear(true);
-  populateMenuItems(mMenu, 1);
+  populateMenuItems(mMenu, onlineIdx);
   mMenu.AddSeparator();
   auto OfflinePopupMenu = new IPopupMenu("Offline");
-  populateMenuItems(*OfflinePopupMenu, 2);
+  populateMenuItems(*OfflinePopupMenu, offlineIdx);
   auto* pOfflineMenu = mMenu.AddItem("Offline", OfflinePopupMenu)->GetSubmenu();
   GetUI()->CreatePopupMenu(*this, mMenu, mMouseControl.cur_x, mMouseControl.cur_y);
 }
@@ -164,12 +167,12 @@ void OverSampleSelector::OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int val
 
   if (strcmp(title, "Offline") == 0)
   {
-    SetValue(GetParam(2)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), 2);
+    SetValue(GetParam(offlineIdx)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), offlineIdx);
     SetDirty(true);
   }
   else if (strcmp(title, "OverSample Options") == 0)
   {
-    SetValue(GetParam(1)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), 1);
+    SetValue(GetParam(onlineIdx)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), onlineIdx);
     SetDirty(true);
   }
 }
