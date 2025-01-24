@@ -240,7 +240,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
 
     pGraphics->AttachControl(new RCLabel(rectControlsPullLabel, "Pull (A)", EDirection::Horizontal, stylePullLabel, 0.f, RCLabel::Position::Center));
     auto sliderPull = new RCSlider(rectControlsPullSlider, kPull, "", RCSlider::Horizontal, stylePull);
-    sliderPull->SetRoundBy(2.f);
+    // sliderPull->SetRoundBy(10.f);
     pGraphics->AttachControl(sliderPull);
     pGraphics->AttachControl(new RCLabel(rectControlsSqueezeLabel, "Squeeze (B)", EDirection::Horizontal, styleSqueezeLabel, 0.f, RCLabel::Position::Center));
     auto sliderSqueeze = new RCSlider(rectControlsSqueezeSlider, kSqueeze, "", RCSlider::Horizontal, styleSqueeze);
