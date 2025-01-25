@@ -18,15 +18,17 @@ public:
     kSinXPlusSinX,
     kSinXPlusSinXPI,
     kSinXPlusXBound,
+    kSinXPlusNegXBound,
     kSinXPowEuler
   };
 
 #if defined VST3_API || defined VST3C_API
   static constexpr std::initializer_list<const char*> Algorithms = {
-    "sin(A*PI*x^B)^C", "(x - sin(A*PI*x^B)^C) / 2", "(sin(x) - sin(A*PI*x^B*PI*)^C) / 2", "(sin(PI*x) - sin(A*PI*x^B)^C) / 2", "(1-x)(sin(A*PI*x^B)^C) + x", "sin(A*PI*x^B^e)^C"};
+    "sin(A*PI*x^B)^C",  "(x - sin(A*PI*x^B)^C) / 2", "(sin(x) - sin(A*PI*x^B*PI*)^C) / 2", "(sin(PI*x) - sin(A*PI*x^B)^C) / 2", "(1-x)(sin(A*PI*x^B)^C) + x", "(1-x)(sin(A*PI*(-x)^B)^C) + x",
+    "sin(A*PI*x^B^e)^C"};
 #else
   static constexpr std::initializer_list<const char*> Algorithms = {
-    "sin(Aπx^B)^C", "(x - sin(Aπx^B)^C) / 2", "(sin(x) - sin(Aπx^Bπ)^C) / 2", "(sin(πx) - sin(Aπx^B)^C) / 2", "(1-x)(sin(Aπx^B)^C) + x", "sin(Aπx^B^e)^C"};
+    "sin(Aπx^B)^C", "(x - sin(Aπx^B)^C) / 2", "(sin(x) - sin(Aπx^Bπ)^C) / 2", "(sin(πx) - sin(Aπx^B)^C) / 2", "(1-x)(sin(Aπx^B)^C) + x", "(1-x)(sin(Aπ(-x)^B)^C) + x", "sin(Aπx^B^e)^C"};
 #endif
 
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
@@ -93,6 +95,7 @@ private:
   iplug::sample SinXPlusSinX(iplug::sample x) { return .5 * (std::sin(x) - SinX(x)); }
   iplug::sample SinXPlusSinXPI(iplug::sample x) { return .5 * (std::sin(x * iplug::PI) - SinX(x)); }
   iplug::sample SinXPlusXBound(iplug::sample x) { return (1. - x) * SinX(x) + x; }
+  iplug::sample SinXPlusNegXBound(iplug::sample x) { return (1. - x) * -SinX(x) + x; }
   iplug::sample SinXPowEuler(iplug::sample x)
   {
     const auto s = std::sin(mPull * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
@@ -114,6 +117,8 @@ private:
       return SinXPlusSinXPI(x);
     case kSinXPlusXBound:
       return SinXPlusXBound(x);
+    case kSinXPlusNegXBound:
+      return SinXPlusNegXBound(x);
     case kSinXPowEuler:
       return SinXPowEuler(x);
     }
