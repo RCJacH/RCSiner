@@ -23,7 +23,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
   GetParam(kPreClip)->InitBool("Pre Clip", 0);
   GetParam(kPostClip)->InitBool("Post Clip", 0);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -24., 24., .1, "dB");
-  GetParam(kOutputGain)->InitDouble("Output Gain", 0., -96., 12., .1, "dB", 0, "", IParam::ShapePowCurve(0.5));
+  GetParam(kOutputGain)->InitDouble("Output Gain", -6., -96., 12., .1, "dB", 0, "", IParam::ShapePowCurve(0.5));
   GetParam(kWetness)->InitDouble("Wetness", 100., 0., 100., .1, "%");
   GetParam(kOverSample)->InitBool("OverSample Switch", 0);
   GetParam(kOverSampleOnline)->InitEnum("OverSample", 0, {"1x", "2x", "4x", "8x", "16x"});
