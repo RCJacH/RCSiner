@@ -12,7 +12,7 @@ enum EParams
   kAlgorithm = 0,
   kSync,
   kSqueeze,
-  kCurve,
+  kDeform,
   kStages,
   kPreClip,
   kPostClip,

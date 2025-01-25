@@ -34,7 +34,7 @@ public:
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
   void SetSync(double sync) { mSync = sync; }
   void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
-  void SetCurve(double curve) { mCurve = curve; }
+  void SetDeform(double deform) { mDeform = deform; }
   void SetStages(double stages)
   {
     double baseStages;
@@ -76,7 +76,7 @@ private:
   EAlgorithms mAlgorithm;
   double mSync;
   double mSqueeze;
-  double mCurve;
+  double mDeform;
   int mBaseStages;
   int mOverStages;
   double mStagePct;
@@ -89,7 +89,7 @@ private:
     const auto s = std::sin(mSync * std::pow(x, mSqueeze) * iplug::PI);
     if (!s)
       return s;
-    return sign(s) * std::pow(std::abs(s), mCurve);
+    return sign(s) * std::pow(std::abs(s), mDeform);
   }
   iplug::sample SinXPlusX(iplug::sample x) { return .5 * (x - SinX(x)); }
   iplug::sample SinXPlusSinX(iplug::sample x) { return .5 * (std::sin(x) - SinX(x)); }
@@ -101,7 +101,7 @@ private:
     const auto s = std::sin(mSync * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
     if (!s)
       return s;
-    return sign(s) * std::pow(std::abs(s), mCurve);
+    return sign(s) * std::pow(std::abs(s), mDeform);
   }
   iplug::sample ApplyAlgoritm(iplug::sample x)
   {
