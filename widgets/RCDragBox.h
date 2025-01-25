@@ -96,7 +96,7 @@ public:
   void OnResize() override;
   void SetDirty(bool push, int valIdx = kNoValIdx) override;
   void CreateContextMenu(IPopupMenu& contextMenu) override;
-  void OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx) override;
+  void OnContextSelection(int valIdx) override;
   void OnInit() override;
 
 protected:
@@ -239,34 +239,42 @@ void RCDragBox::CreateContextMenu(IPopupMenu& contextMenu)
   if (!mIsStepped)
     return;
 
-  mMenu.Clear(true);
-
   const IParam* pParam = GetParam();
   auto cur_v = pParam->Value();
   double v = pParam->GetMin();
   auto step = pParam->GetStep();
   int i = 0;
+#if defined VST3_API || defined VST3C_API
+  contextMenu.AddSeparator();
+  const int minIdx = 1;
+#else
+  const int minIdx = 0;
+#endif
   while (v <= pParam->GetMax())
   {
     auto text = pParam->GetDisplayText(v);
-    mMenu.AddItem(text);
-    mMenu.CheckItem(i, v == cur_v);
+    contextMenu.AddItem(text);
+    contextMenu.CheckItem((i + minIdx), v == cur_v);
     v += step;
     i++;
   }
-
-  GetUI()->CreatePopupMenu(*this, mMenu, mMouseControl.cur_x, mMouseControl.cur_y);
 }
 
-void RCDragBox::OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx)
+void RCDragBox::OnContextSelection(int valIdx)
 {
-  if (pSelectedMenu)
-  {
-    const IParam* pParam = GetParam();
-    SetValue(pParam->ToNormalized(pSelectedMenu->GetChosenItemIdx()));
-    SetDirty(true);
-  }
+#if defined VST3_API || defined VST3C_API
+  const int minIdx = 1;
+#else
+  const int minIdx = 0;
+#endif
+  if (valIdx < minIdx)
+    return;
+
+  const IParam* pParam = GetParam();
+  SetValue(pParam->ToNormalized(valIdx - minIdx));
+  SetDirty(true);
 }
+
 void RCDragBox::OnInit()
 {
   const IParam* pParam = GetParam();
