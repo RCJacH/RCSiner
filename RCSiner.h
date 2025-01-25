@@ -10,7 +10,7 @@ const int kNumPresets = 1;
 enum EParams
 {
   kAlgorithm = 0,
-  kPull,
+  kSync,
   kSqueeze,
   kCurve,
   kStages,

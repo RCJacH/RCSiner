@@ -32,7 +32,7 @@ public:
 #endif
 
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
-  void SetPull(double pull) { mPull = pull; }
+  void SetSync(double sync) { mSync = sync; }
   void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
   void SetCurve(double curve) { mCurve = curve; }
   void SetStages(double stages)
@@ -74,7 +74,7 @@ public:
 
 private:
   EAlgorithms mAlgorithm;
-  double mPull;
+  double mSync;
   double mSqueeze;
   double mCurve;
   int mBaseStages;
@@ -86,7 +86,7 @@ private:
 private:
   iplug::sample SinX(iplug::sample x)
   {
-    const auto s = std::sin(mPull * std::pow(x, mSqueeze) * iplug::PI);
+    const auto s = std::sin(mSync * std::pow(x, mSqueeze) * iplug::PI);
     if (!s)
       return s;
     return sign(s) * std::pow(std::abs(s), mCurve);
@@ -98,7 +98,7 @@ private:
   iplug::sample SinXPlusNegXBound(iplug::sample x) { return (1. - x) * -SinX(x) + x; }
   iplug::sample SinXPowEuler(iplug::sample x)
   {
-    const auto s = std::sin(mPull * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
+    const auto s = std::sin(mSync * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
     if (!s)
       return s;
     return sign(s) * std::pow(std::abs(s), mCurve);
