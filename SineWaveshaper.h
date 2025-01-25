@@ -53,8 +53,6 @@ public:
     for (int i = 1; i <= mOverStages; i++)
     {
       post = ApplyAlgoritm(uInput);
-      signMul *= sign(post);
-      post = abs(post);
       if (i == mBaseStages && mStagePct > 0.)
       {
         uInput = iplug::Lerp(uInput, post, mStagePct);
@@ -63,6 +61,8 @@ public:
       {
         uInput = post;
       }
+      signMul *= sign(uInput);
+      uInput = abs(uInput);
     }
 
     if (mPostClip)
