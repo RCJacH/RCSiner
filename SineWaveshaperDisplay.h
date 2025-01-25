@@ -49,12 +49,21 @@ public:
 
     if (mGridThickness)
     {
-      g.DrawHorizontalLine(frameColor.WithOpacity(.75f), mRECT, .25f, &mBlend, mGridThickness);
-      g.DrawHorizontalLine(frameColor.WithOpacity(.75f), mRECT, .5f, &mBlend, mGridThickness);
-      g.DrawHorizontalLine(frameColor.WithOpacity(.75f), mRECT, .75f, &mBlend, mGridThickness);
-      g.DrawVerticalLine(frameColor.WithOpacity(.75f), mRECT, .25f, &mBlend, mGridThickness);
-      g.DrawVerticalLine(frameColor.WithOpacity(.75f), mRECT, .5f, &mBlend, mGridThickness);
-      g.DrawVerticalLine(frameColor.WithOpacity(.75f), mRECT, .75f, &mBlend, mGridThickness);
+      int i = 0;
+      for (auto pct : mGridPcts)
+      {
+        const float alpha = i % 2 ? .36f : .75f;
+        i++;
+        const auto color = frameColor.WithOpacity(alpha);
+        g.DrawHorizontalLine(color, mRECT, .5f + pct, &mBlend, mGridThickness);
+        g.DrawVerticalLine(color, mRECT, .5f + pct, &mBlend, mGridThickness);
+
+        if (i == 1)
+          continue;
+
+        g.DrawHorizontalLine(color, mRECT, .5f - pct, &mBlend, mGridThickness);
+        g.DrawVerticalLine(color, mRECT, .5f - pct, &mBlend, mGridThickness);
+      }
     }
   }
 
@@ -120,6 +129,7 @@ public:
   void OnResize() override
   {
     SetTargetRECT(mRECT);
+    recalculateGrid();
     SetDirty(false);
   }
 
@@ -128,6 +138,19 @@ private:
   RCStyle mStyle;
   float mGridThickness;
   std::vector<float> mData;
+  float mZoomFactor = 1.f;
+  std::vector<float> mGridPcts = {.5f};
+
+  void recalculateGrid()
+  {
+    mGridPcts.clear();
+    const auto lines = static_cast<int>(floor(mZoomFactor * 2.f));
+    mGridPcts.resize(lines);
+    for (int i = 0; i < lines; i++)
+    {
+      mGridPcts[i] = i / (mZoomFactor * lines);
+    }
+  }
 };
 
 END_IGRAPHICS_NAMESPACE
