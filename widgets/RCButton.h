@@ -31,6 +31,8 @@ public:
   void Draw(IGraphics& g) override;
   void OnInit() override;
 
+  void SetValueStr(const char* str) { mLabel = str; };
+
   virtual void DrawWidget(IGraphics& g);
   virtual void DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bounds);
   virtual void DrawButtonText(IGraphics& g, const IRECT& bounds, WidgetColorSet colorset);
