@@ -1,79 +1,64 @@
 #pragma once
 
 #include "widgets/Color.h"
-#include "widgets/RCButtonControlBase.h"
+#include "widgets/RCButton.h"
+#include "widgets/RCControl.h"
 #include "widgets/RCStyle.h"
 
 BEGIN_IPLUG_NAMESPACE
 BEGIN_IGRAPHICS_NAMESPACE
 
-/** A vector "tab" multi switch control. Click tabs to cycle through states. */
-class OverSampleSelector : public RCControl
+class OverSampleButton : public RCButton
 {
 public:
-  OverSampleSelector(const IRECT& bounds, int paramIdxToggle, int paramIdxOnline, int paramIdxOffline, const RCStyle& style = DEFAULT_RCSTYLE, EDirection direction = EDirection::Horizontal);
-
-  virtual ~OverSampleSelector() {}
+  OverSampleButton(const IRECT& bounds, IActionFunction aF, const char* label = "", const RCStyle& style = DEFAULT_RCSTYLE, EDirection direction = EDirection::Horizontal)
+    : RCButton(bounds, aF, label, style, direction) {};
   void Draw(IGraphics& g) override;
 
   virtual void DrawWidget(IGraphics& g);
   virtual void DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bounds);
   virtual void DrawButtonText(IGraphics& g, const IRECT& bounds, WidgetColorSet colorset);
-  virtual const char* GetDisplayText();
 
-  void MouseLClickAction(const IMouseMod& mod) override;
-  void CreateContextMenu(IPopupMenu& contextMenu) override;
-  void OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx) override;
-
-protected:
-  EDirection mDirection;
-  RCStyle mStyle;
-  const char* mLabel;
-  IPopupMenu mMenu{"OverSample Options"};
-  const int activateIdx = 0;
-  const int onlineIdx = 1;
-  const int offlineIdx = 2;
-
-  void populateMenuItems(IPopupMenu& menu, int idx)
+  void SetLClickAction(IActionFunction action) { mLClickAction = action; };
+  void SetRClickAction(IActionFunction action) { mRClickAction = action; };
+  bool GetActivated() { return mActivated; };
+  void MouseLClickAction(const IMouseMod& mod) override
   {
-    const IParam* pParam = GetParam(idx);
-    auto cur_v = pParam->Value();
-    double v = pParam->GetMin();
-    auto step = pParam->GetStep();
-    int i = 0;
-    while (v <= pParam->GetMax())
-    {
-      auto text = pParam->GetDisplayText(v);
-      menu.AddItem(text);
-      menu.CheckItem(i, v == cur_v);
-      v += step;
-      i++;
-    }
-  }
+    RCButton::MouseLClickAction(mod);
+    mActivated = !mActivated;
+    if (mLClickAction)
+      mLClickAction(this);
+  };
+  void MouseRClickAction(const IMouseMod& mod) override
+  {
+    RCButton::MouseRClickAction(mod);
+    if (mRClickAction)
+      mRClickAction(this);
+  };
+  void CreateContextMenu(IPopupMenu& contextMenu) override
+  {
+    mMouseControl.ReleaseL();
+    if (mRClickAction)
+      mRClickAction(this);
+  };
+
+private:
+  IActionFunction mLClickAction = nullptr;
+  IActionFunction mRClickAction = nullptr;
+  bool mActivated = false;
 };
 
-OverSampleSelector::OverSampleSelector(const IRECT& bounds, int paramIdxToggle, int paramIdxOnline, int paramIdxOffline, const RCStyle& style, EDirection direction)
-  : RCControl(bounds, {paramIdxToggle, paramIdxOnline, paramIdxOffline})
-  , mDirection(direction)
-  , mStyle(style)
+void OverSampleButton::Draw(IGraphics& g) { DrawWidget(g); }
+
+
+void OverSampleButton::DrawWidget(IGraphics& g)
 {
-  mDblAsSingleClick = true;
-  mText = style.valueText;
-  mText.mAlign = mStyle.valueText.mAlign = EAlign::Center;
-  mText.mVAlign = mStyle.valueText.mVAlign = EVAlign::Middle;
-}
-
-void OverSampleSelector::Draw(IGraphics& g) { DrawWidget(g); }
-
-
-void OverSampleSelector::DrawWidget(IGraphics& g)
-{
-  const WidgetColorSet colorset = mStyle.GetColors(mMouseControl.IsHovering(), mMouseControl.IsLDown(), IsDisabled() || !(GetParam(activateIdx)->Value()));
+  const WidgetColorSet colorset = mStyle.GetColors(mMouseControl.IsHovering(), mMouseControl.IsLDown(), IsDisabled() || !mActivated);
   DrawBG(g, colorset, mRECT);
   DrawButtonText(g, mRECT, colorset);
 }
 
-void OverSampleSelector::DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bounds)
+void OverSampleButton::DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bounds)
 {
   const float borderWidth = mStyle.drawFrame ? mStyle.frameThickness : 0.f;
   IColor frameColor = colorset.GetBorderColor();
@@ -96,18 +81,84 @@ void OverSampleSelector::DrawBG(IGraphics& g, WidgetColorSet colorset, IRECT bou
   }
 }
 
-void OverSampleSelector::DrawButtonText(IGraphics& g, const IRECT& r, WidgetColorSet color)
+void OverSampleButton::DrawButtonText(IGraphics& g, const IRECT& r, WidgetColorSet color)
 {
-  const char* textStr = GetDisplayText();
-
-  if (CStringHasContents(textStr))
+  if (CStringHasContents(mLabel))
   {
     IColor textColor = mStyle.drawBG ? color.GetLabelColor() : color.GetColor();
     if (mStyle.drawBG && color.GetCoveredContrast() < 1.5f)
       textColor.Contrast(-.5f);
     const IText& text = mStyle.GetText().WithFGColor(textColor);
-    g.DrawText(text, textStr, r, &mBlend);
+    g.DrawText(text, mLabel, r, &mBlend);
   }
+}
+
+class OverSampleSelector : public IContainerBase
+{
+public:
+  OverSampleSelector(const IRECT& bounds, int paramIdxToggle, int paramIdxOnline, int paramIdxOffline, const RCStyle& style = DEFAULT_RCSTYLE, EDirection direction = EDirection::Horizontal);
+
+  virtual ~OverSampleSelector() { mChildren.Empty(); }
+  virtual const char* GetDisplayText();
+
+  void CreateCustomContextMenu(IPopupMenu& contextMenu, const IRECT& bounds);
+  void SetValueFromDelegate(double value, int valIdx) override;
+
+protected:
+  EDirection mDirection;
+  RCStyle mStyle;
+  OverSampleButton* mButtonControl = nullptr;
+  WDL_PtrList<IControl> mChildren;
+
+  IPopupMenu mMenu{"OverSample Options"};
+  const int activateIdx = 0;
+  const int onlineIdx = 1;
+  const int offlineIdx = 2;
+
+  void populateMenuItems(IPopupMenu& menu, int idx, int startingIdx = 0)
+  {
+    const IParam* pParam = GetParam(idx);
+    auto cur_v = pParam->Value();
+    double v = pParam->GetMin();
+    auto step = pParam->GetStep();
+    int i = startingIdx;
+    while (v <= pParam->GetMax())
+    {
+      auto text = pParam->GetDisplayText(v);
+      menu.AddItem(text);
+      menu.CheckItem(i, v == cur_v);
+      v += step;
+      i++;
+    }
+  }
+};
+
+OverSampleSelector::OverSampleSelector(const IRECT& bounds, int paramIdxToggle, int paramIdxOnline, int paramIdxOffline, const RCStyle& style, EDirection direction)
+  : IContainerBase(bounds, {paramIdxToggle, paramIdxOnline, paramIdxOffline})
+  , mDirection(direction)
+  , mStyle(style)
+{
+  mDblAsSingleClick = true;
+  mText = style.valueText;
+  mText.mAlign = mStyle.valueText.mAlign = EAlign::Center;
+  mText.mVAlign = mStyle.valueText.mVAlign = EVAlign::Middle;
+  SetAttachFunc([&, style](IContainerBase* pContainer, const IRECT& bounds) {
+    AddChildControl(mButtonControl = new OverSampleButton(mRECT, EmptyClickActionFunc, "", mStyle), kNoTag, GetGroup());
+
+    mButtonControl->SetValueStr(GetDisplayText());
+    mButtonControl->SetLClickAction([&](IControl* pCaller) {
+      const auto is_on = mButtonControl->GetActivated();
+      SetValue(is_on, activateIdx);
+      if (is_on && !(GetParam(onlineIdx)->Value()) && !(GetParam(offlineIdx)->Value()))
+        SetValue(GetParam(onlineIdx)->ToNormalized(1.), onlineIdx);
+      SetDirty();
+      mButtonControl->SetValueStr(GetDisplayText());
+      mButtonControl->SetDirty(false);
+    });
+    mButtonControl->SetRClickAction([&](IControl* pCaller) { CreateCustomContextMenu(mMenu, mRECT); });
+  });
+
+  SetResizeFunc([&](IContainerBase* pContainer, const IRECT& bounds) { mButtonControl->SetTargetAndDrawRECTs(bounds); });
 }
 
 const char* OverSampleSelector::GetDisplayText()
@@ -135,46 +186,29 @@ const char* OverSampleSelector::GetDisplayText()
   return result;
 }
 
-void OverSampleSelector::MouseLClickAction(const IMouseMod& mod)
-{
-  const auto is_on = !(GetParam(activateIdx)->Value());
-  SetValue(is_on, activateIdx);
-  if (is_on && !(GetParam(onlineIdx)->Value()) && !(GetParam(offlineIdx)->Value()))
-    SetValue(GetParam(onlineIdx)->ToNormalized(1.), onlineIdx);
-}
+void OverSampleSelector::SetValueFromDelegate(double value, int valIdx) { mButtonControl->SetValueStr(GetDisplayText()); }
 
-
-void OverSampleSelector::CreateContextMenu(IPopupMenu& contextMenu)
+void OverSampleSelector::CreateCustomContextMenu(IPopupMenu& contextMenu, const IRECT& bounds)
 {
-  mMouseControl.ReleaseL();
-  mMenu.Clear(true);
-  populateMenuItems(mMenu, onlineIdx);
-  mMenu.AddSeparator();
+  contextMenu.Clear(true);
+  populateMenuItems(contextMenu, onlineIdx);
+  contextMenu.AddSeparator();
   auto OfflinePopupMenu = new IPopupMenu("Offline");
   populateMenuItems(*OfflinePopupMenu, offlineIdx);
-  auto* pOfflineMenu = mMenu.AddItem("Offline", OfflinePopupMenu)->GetSubmenu();
-  GetUI()->CreatePopupMenu(*this, mMenu, mMouseControl.cur_x, mMouseControl.cur_y);
-}
-
-void OverSampleSelector::OnPopupMenuSelection(IPopupMenu* pSelectedMenu, int valIdx)
-{
-  mMouseControl.ReleaseL();
-
-  if (!pSelectedMenu)
-    return;
-
-  const char* title = pSelectedMenu->GetRootTitle();
-
-  if (strcmp(title, "Offline") == 0)
-  {
-    SetValue(GetParam(offlineIdx)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), offlineIdx);
-    SetDirty(true);
-  }
-  else if (strcmp(title, "OverSample Options") == 0)
-  {
-    SetValue(GetParam(onlineIdx)->ToNormalized(pSelectedMenu->GetChosenItemIdx()), onlineIdx);
-    SetDirty(true);
-  }
+  auto* pOfflineMenu = contextMenu.AddItem("Offline", OfflinePopupMenu)->GetSubmenu();
+  auto offlineMenuFunc = [this](IPopupMenu* pMenu) {
+    SetValue(GetParam(offlineIdx)->ToNormalized(pMenu->GetChosenItemIdx()), offlineIdx);
+    SetDirty(true, offlineIdx);
+    mButtonControl->SetValueStr(GetDisplayText());
+  };
+  auto menufunc = [this](IPopupMenu* pMenu) {
+    SetValue(GetParam(onlineIdx)->ToNormalized(pMenu->GetChosenItemIdx()), onlineIdx);
+    SetDirty(true, onlineIdx);
+    mButtonControl->SetValueStr(GetDisplayText());
+  };
+  pOfflineMenu->SetFunction(offlineMenuFunc);
+  GetUI()->CreatePopupMenu(*this, contextMenu, bounds);
+  contextMenu.SetFunction(menufunc);
 }
 
 END_IGRAPHICS_NAMESPACE
