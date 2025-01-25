@@ -17,7 +17,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
 {
   GetParam(kAlgorithm)->InitEnum("Algorithm", 0, mSineWaveshaper.Algorithms);
   GetParam(kSync)->InitDouble("Sync", 1., .5, 16., .001, "", 0, "", IParam::ShapeExp());
-  GetParam(kSqueeze)->InitDouble("Squeeze", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
+  GetParam(kPull)->InitDouble("Pull", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kDeform)->InitDouble("Deform", 1., .25, 4., .001, "", 0, "", IParam::ShapeExp());
   GetParam(kStages)->InitDouble("Stages", 1, 1, 8, .01);
   GetParam(kPreClip)->InitBool("Pre Clip", 0);
@@ -52,7 +52,7 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const Color::HSLA colorControlsSectionBG = colorMain.Scaled(0.f, -.8f, -.35f);
     const Color::HSLA colorControlsSectionBorder = colorMain.Scaled(0.f, -.8f, .8f);
     const Color::HSLA colorSync = colorControls.Adjusted(-15);
-    const Color::HSLA colorSqueeze = colorControls.Adjusted(15);
+    const Color::HSLA colorPull = colorControls.Adjusted(15);
     const Color::HSLA colorDeform = colorControls.Adjusted(45);
     const Color::HSLA colorStages = colorControls.Adjusted(75);
 
@@ -218,8 +218,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
     const float heightControlsSlider = (rectControlInPadding.H() - heightControlsLabel * 4.f) / 4.f;
     const IRECT rectControlsSyncLabel = rectControlInPadding.ReduceFromTop(heightControlsLabel);
     const IRECT rectControlsSyncSlider = rectControlInPadding.ReduceFromTop(heightControlsSlider);
-    const IRECT rectControlsSqueezeLabel = rectControlInPadding.ReduceFromTop(heightControlsLabel);
-    const IRECT rectControlsSqueezeSlider = rectControlInPadding.ReduceFromTop(heightControlsSlider);
+    const IRECT rectControlsPullLabel = rectControlInPadding.ReduceFromTop(heightControlsLabel);
+    const IRECT rectControlsPullSlider = rectControlInPadding.ReduceFromTop(heightControlsSlider);
     const IRECT rectControlsDeformLabel = rectControlInPadding.ReduceFromTop(heightControlsLabel);
     const IRECT rectControlsDeformSlider = rectControlInPadding.ReduceFromTop(heightControlsSlider);
     const IRECT rectControlsStagesLabel = rectControlInPadding.ReduceFromTop(heightControlsLabel);
@@ -227,8 +227,8 @@ RCSiner::RCSiner(const InstanceInfo& info)
 
     const RCStyle styleSync = styleController.WithColor(GetSectionWidgetColor(colorSync));
     const RCStyle styleSyncLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorSync)).WithValueTextSize(14.f);
-    const RCStyle styleSqueeze = styleController.WithColor(GetSectionWidgetColor(colorSqueeze));
-    const RCStyle styleSqueezeLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorSqueeze)).WithValueTextSize(14.f);
+    const RCStyle stylePull = styleController.WithColor(GetSectionWidgetColor(colorPull));
+    const RCStyle stylePullLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorPull)).WithValueTextSize(14.f);
     const RCStyle styleDeform = styleController.WithColor(GetSectionWidgetColor(colorDeform));
     const RCStyle styleDeformLabel = styleHeaderText.WithColor(GetSectionTitleLabelColor(colorDeform)).WithValueTextSize(14.f);
     const RCStyle styleStages = styleController.WithColor(GetSectionWidgetColor(colorStages));
@@ -241,10 +241,10 @@ RCSiner::RCSiner(const InstanceInfo& info)
     auto sliderSync = new RCSlider(rectControlsSyncSlider, kSync, "", RCSlider::Horizontal, styleSync);
     // sliderSync->SetRoundBy(10.f);
     pGraphics->AttachControl(sliderSync);
-    pGraphics->AttachControl(new RCLabel(rectControlsSqueezeLabel, "Squeeze (B)", EDirection::Horizontal, styleSqueezeLabel, 0.f, RCLabel::Position::Center));
-    auto sliderSqueeze = new RCSlider(rectControlsSqueezeSlider, kSqueeze, "", RCSlider::Horizontal, styleSqueeze);
-    sliderSqueeze->SetRoundBy(2.f);
-    pGraphics->AttachControl(sliderSqueeze);
+    pGraphics->AttachControl(new RCLabel(rectControlsPullLabel, "Pull (B)", EDirection::Horizontal, stylePullLabel, 0.f, RCLabel::Position::Center));
+    auto sliderPull = new RCSlider(rectControlsPullSlider, kPull, "", RCSlider::Horizontal, stylePull);
+    sliderPull->SetRoundBy(2.f);
+    pGraphics->AttachControl(sliderPull);
     pGraphics->AttachControl(new RCLabel(rectControlsDeformLabel, "Deform (C)", EDirection::Horizontal, styleDeformLabel, 0.f, RCLabel::Position::Center));
     auto sliderDeform = new RCSlider(rectControlsDeformSlider, kDeform, "", RCSlider::Horizontal, styleDeform);
     sliderDeform->SetRoundBy(2.f);
@@ -274,8 +274,8 @@ void RCSiner::OnParamChange(int idx)
       if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
         ctrl->SetDirty(false);
     break;
-  case kSqueeze:
-    mSineWaveshaper.SetSqueeze(value);
+  case kPull:
+    mSineWaveshaper.SetPull(value);
     if (const auto ui = GetUI())
       if (const auto ctrl = ui->GetControlWithTag(kCtrlSineWaveshaperDisplay))
         ctrl->SetDirty(false);

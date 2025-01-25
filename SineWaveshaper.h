@@ -33,7 +33,7 @@ public:
 
   void SetAlgorithm(int algorithm) { mAlgorithm = static_cast<EAlgorithms>(algorithm); }
   void SetSync(double sync) { mSync = sync; }
-  void SetSqueeze(double squeeze) { mSqueeze = squeeze; }
+  void SetPull(double pull) { mPull = pull; }
   void SetDeform(double deform) { mDeform = deform; }
   void SetStages(double stages)
   {
@@ -75,7 +75,7 @@ public:
 private:
   EAlgorithms mAlgorithm;
   double mSync;
-  double mSqueeze;
+  double mPull;
   double mDeform;
   int mBaseStages;
   int mOverStages;
@@ -86,7 +86,7 @@ private:
 private:
   iplug::sample SinX(iplug::sample x)
   {
-    const auto s = std::sin(mSync * std::pow(x, mSqueeze) * iplug::PI);
+    const auto s = std::sin(mSync * std::pow(x, mPull) * iplug::PI);
     if (!s)
       return s;
     return sign(s) * std::pow(std::abs(s), mDeform);
@@ -98,7 +98,7 @@ private:
   iplug::sample SinXPlusNegXBound(iplug::sample x) { return (1. - x) * -SinX(x) + x; }
   iplug::sample SinXPowEuler(iplug::sample x)
   {
-    const auto s = std::sin(mSync * std::pow(std::pow(x, mSqueeze), e) * iplug::PI);
+    const auto s = std::sin(mSync * std::pow(std::pow(x, mPull), e) * iplug::PI);
     if (!s)
       return s;
     return sign(s) * std::pow(std::abs(s), mDeform);

@@ -11,7 +11,7 @@ enum EParams
 {
   kAlgorithm = 0,
   kSync,
-  kSqueeze,
+  kPull,
   kDeform,
   kStages,
   kPreClip,
