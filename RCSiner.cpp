@@ -85,7 +85,6 @@ RCSiner::RCSiner(const InstanceInfo& info)
     // General Layout
     const IRECT rectContent = pGraphics->GetBounds();
     const float sizeMargin = 8.f;
-    const float sizeMarginModule = 4.f;
     const float sizeBorderModule = 2.f;
     const float sizePaddingModule = 4.f;
     const float gapModule = 4.f;

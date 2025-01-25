@@ -171,7 +171,7 @@ void RCSlider::DrawValueText(IGraphics& g, WidgetColorSet colorset, IRECT bounds
 
   IColor textColor = colorset.GetLabelColor();
   if ((covered ? colorset.GetCoveredContrast() : colorset.GetUncoveredContrast()) < 1.5f)
-    textColor.Contrast(-.618);
+    textColor.Contrast(-.618f);
   const IText& text = mStyle.GetText().WithFGColor(textColor);
 
   switch (dir)

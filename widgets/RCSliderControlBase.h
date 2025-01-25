@@ -112,8 +112,6 @@ void RCSliderControlBase::OnMouseDblClick(float x, float y, const IMouseMod& mod
 void RCSliderControlBase::MouseLDragAction(float dX, float dY, const IMouseMod& mod)
 {
   const IParam* pParam = GetParam();
-  const float x = mMouseControl.cur_x;
-  const float y = mMouseControl.cur_y;
 
   double gearing = IsFineControl(mod, false) ? mGearing * 10.0 : mGearing;
 

@@ -123,7 +123,6 @@ void RCDragBox::DrawWidget(IGraphics& g, WidgetColorSet colorset)
   IRECT valueBounds;
   IRECT handleBounds;
   EDirection fracDirection;
-  bool covered = false;
   const double pct = GetValue();
   float margin = mHandleSize * .5f;
   switch (mDirectionType)

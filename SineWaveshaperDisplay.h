@@ -100,7 +100,7 @@ public:
         clipY = false;
         g.PathMoveTo(xPos, yPos);
       }
-      yPos = bounds.MH() - (bounds.H() * data * .5f);
+      yPos = bounds.MH() - (h * data * .5f);
       if (init)
       {
         g.PathMoveTo(xPos, yPos);
@@ -117,7 +117,7 @@ public:
     g.PathMoveTo(xPos, bounds.MH());
     for (auto& data : mData)
     {
-      auto yPos = bounds.MH() - (bounds.H() * data * .5f);
+      auto yPos = bounds.MH() - (h * data * .5f);
       bounds.Constrain(xPos, yPos);
       g.PathLineTo(xPos, yPos);
       xPos += 1.f;
