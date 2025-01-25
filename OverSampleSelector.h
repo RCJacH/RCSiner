@@ -11,8 +11,9 @@ BEGIN_IGRAPHICS_NAMESPACE
 class OverSampleButton : public RCButton
 {
 public:
-  OverSampleButton(const IRECT& bounds, IActionFunction aF, const char* label = "", const RCStyle& style = DEFAULT_RCSTYLE, EDirection direction = EDirection::Horizontal)
-    : RCButton(bounds, aF, label, style, direction) {};
+  OverSampleButton(const IRECT& bounds, IActionFunction aF, const char* label = "", const RCStyle& style = DEFAULT_RCSTYLE, EDirection direction = EDirection::Horizontal, bool activated = false)
+    : RCButton(bounds, aF, label, style, direction)
+    , mActivated(activated) {};
   void Draw(IGraphics& g) override;
 
   virtual void DrawWidget(IGraphics& g);
@@ -45,7 +46,7 @@ public:
 private:
   IActionFunction mLClickAction = nullptr;
   IActionFunction mRClickAction = nullptr;
-  bool mActivated = false;
+  bool mActivated;
 };
 
 void OverSampleButton::Draw(IGraphics& g) { DrawWidget(g); }
@@ -143,8 +144,7 @@ OverSampleSelector::OverSampleSelector(const IRECT& bounds, int paramIdxToggle, 
   mText.mAlign = mStyle.valueText.mAlign = EAlign::Center;
   mText.mVAlign = mStyle.valueText.mVAlign = EVAlign::Middle;
   SetAttachFunc([&, style](IContainerBase* pContainer, const IRECT& bounds) {
-    AddChildControl(mButtonControl = new OverSampleButton(mRECT, EmptyClickActionFunc, "", mStyle), kNoTag, GetGroup());
-
+    AddChildControl(mButtonControl = new OverSampleButton(mRECT, EmptyClickActionFunc, "", mStyle, EDirection::Horizontal, static_cast<bool>(GetParam(activateIdx)->Value())), kNoTag, GetGroup());
     mButtonControl->SetValueStr(GetDisplayText());
     mButtonControl->SetLClickAction([&](IControl* pCaller) {
       const auto is_on = mButtonControl->GetActivated();
