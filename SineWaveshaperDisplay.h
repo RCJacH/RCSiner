@@ -77,12 +77,12 @@ public:
     for (int i = 0; i <= w; i++)
     {
       const auto x = i / w * 2.f - 1.f;
-      const auto y = mWaveshaper.ProcessSample(x);
-      mData[i] = static_cast<float>(y);
+      const auto y = mWaveshaper.ProcessSample(x * mZoomFactor);
+      mData[i] = static_cast<float>(y / mZoomFactor);
     }
 
     float xPos = bounds.L;
-    float yPos;
+    float yPos = bounds.T;
     bool init = true;
     bool clipY = false;
     g.PathClear();
@@ -126,11 +126,43 @@ public:
     g.PathFill(colorset.GetColor().WithOpacity(.382f), IFillOptions(true), &mBlend);
   }
 
+  void OnMouseDblClick(float x, float y, const IMouseMod& mod) { SetZoomFactor(1.f); }
+
+  void OnMouseWheel(float x, float y, const IMouseMod& mod, float d) override
+  {
+    const double gearing = IsFineControl(mod, true) ? 0.01 : 0.1;
+    if (d == 0.f)
+      return;
+
+    mZoomFactor *= d > 0 ? (1.f - gearing) : (1.f + gearing);
+    SetZoomFactor(mZoomFactor);
+  };
+
+  void SetZoomFactor(float factor)
+  {
+    mZoomFactor = Clip<float>(factor, .5f, 2.f);
+    recalculateGrid();
+    SetDirty(false);
+  };
+
   void OnResize() override
   {
     SetTargetRECT(mRECT);
     recalculateGrid();
     SetDirty(false);
+  }
+
+  bool IsFineControl(const IMouseMod& mod, bool wheel) const
+  {
+#ifdef PROTOOLS
+  #ifdef OS_WIN
+    return mod.C;
+  #else
+    return wheel ? mod.C : mod.R;
+  #endif
+#else
+    return mod.S;
+#endif
   }
 
 private:
@@ -144,11 +176,12 @@ private:
   void recalculateGrid()
   {
     mGridPcts.clear();
-    const auto lines = static_cast<int>(floor(mZoomFactor * 2.f));
+    const auto lines = static_cast<int>(ceil(mZoomFactor * 2.f));
+    const auto pct_per_line = .5f / (mZoomFactor * 2.f);
     mGridPcts.resize(lines);
     for (int i = 0; i < lines; i++)
     {
-      mGridPcts[i] = i / (mZoomFactor * lines);
+      mGridPcts[i] = i * pct_per_line;
     }
   }
 };
