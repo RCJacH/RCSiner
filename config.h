@@ -2,11 +2,11 @@
 #define PLUG_MFR "RCProduction"
 #define PLUG_VERSION_HEX 0x00010000
 #define PLUG_VERSION_STR "1.0.0"
-#define PLUG_UNIQUE_ID 'd8b0'
-#define PLUG_MFR_ID 'Acme'
-#define PLUG_URL_STR "https://iplug2.github.io"
-#define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2020 Acme Inc"
+#define PLUG_UNIQUE_ID 'RCPs'
+#define PLUG_MFR_ID 'RCPr'
+#define PLUG_URL_STR "https://github.com/RCJacH/RCSiner"
+#define PLUG_EMAIL_STR "RCProduction@outlook.com"
+#define PLUG_COPYRIGHT_STR "Copyright 2024 RCProduction"
 #define PLUG_CLASS_NAME RCSiner
 
 #define BUNDLE_NAME "RCSiner"
@@ -45,10 +45,10 @@
 
 #define VST3_SUBCATEGORY "Fx"
 
-#define CLAP_MANUAL_URL "https://iplug2.github.io/manuals/example_manual.pdf"
-#define CLAP_SUPPORT_URL "https://github.com/iPlug2/iPlug2/wiki"
-#define CLAP_DESCRIPTION "A simple audio effect for modifying gain"
-#define CLAP_FEATURES "audio-effect" //, "utility"
+#define CLAP_MANUAL_URL "https://github.com/RCJacH/RCSiner/blob/main/manual/RCSiner Manual.pdf"
+#define CLAP_SUPPORT_URL "https://github.com/RCJacH/RCSiner"
+#define CLAP_DESCRIPTION "A sine-based waveshaper"
+#define CLAP_FEATURES "audio-effect", "distortion", "stereo"
 
 #define APP_NUM_CHANNELS 2
 #define APP_N_VECTOR_WAIT 0
